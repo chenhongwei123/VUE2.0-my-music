@@ -20,6 +20,10 @@
 			data: {
 				type: Array,
 				dafault: null
+			},
+			listenScroll:{
+				type: Boolean,
+				dafault: false
 			}
 		},
 		mounted() {
@@ -36,6 +40,13 @@
 					probeType: this.probeType,
 					click: this.click
 				})
+				
+				if(this.listenScroll){
+					let me=this
+					this.scroll.on('scroll',(pos) =>{    //监听scroll的滚动事件
+						me.$emit('scroll',pos)           //向外派发scroll事件
+					})
+				}
 			},
 			disable() {
 				this.scroll && this.scroll.disable()
@@ -45,6 +56,12 @@
 			},
 			refresh() { //刷新scroll，重新计算高度
 				this.scroll && this.scroll.refresh()
+			},
+			scrollTo(){
+				this.scroll && this.scroll.scrollTo.apply(this.scroll,arguments)
+			},
+			scrollToElement(){
+				this.scroll && this.scroll.scrollToElement.apply(this.scroll,arguments)
 			}
 		},
         watch:{
