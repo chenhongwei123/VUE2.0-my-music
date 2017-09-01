@@ -9,7 +9,7 @@
 		 	<li class="list-group" v-for="group in data" ref='listGroup'>
 		 		<h2 class="list-group-title">{{group.title}}</h2>
 		 		<ul>
-		 			<li v-for="item in group.items" class="list-group-item">
+		 			<li @click='selectItem(item)' v-for="item in group.items" class="list-group-item">
 		 				<img v-lazy="item.avatar" class="avatar"/>
 		 				<span class="name">{{item.name}}</span>
 		 			</li>
@@ -26,29 +26,24 @@
 		 		</li>
 		 	</ul>
 		 </div>
+		 <div class="list-fixed" v-show="fixedTitle" ref="fixed">
+		 	<h1 class="fixed-title">{{fixedTitle}}</h1>
+		 </div>
+		 <div v-show="!data.length" class="loading-container">
+		 	<loading></loading>
+		 </div>
 	</scroll>
 </template>
 
 <script type="text/ecmascript-6">
 	import Scroll from 'base/scroll/scroll'
+	import Loading from 'base/loading/loading'
 	import {getData} from 'common/js/dom'
 	
-	const ANCHOR_HEIGHT=18
 	
+	const ANCHOR_HEIGHT=18
+	const TITLE_HEIGHT=30
 	export default {
-		data(){
-			return{
-				scrollY:-1,
-				currentIndex:0
-			}
-		},
-		created(){
-			this.touch={}//数据存入
-			this.listenScroll=true
-			this.listHeight = []
-			this.probeType = 3
-		},
-		
 		props:{
 			data:{
 				type:Array,
@@ -62,9 +57,32 @@
 					//return data.title.substr(0,1)
 					return group.title.substr(0,1)
 				})
+			},
+			fixedTitle(){
+				if (this.scrollY > 0) {
+		          return ''
+		        }
+				return this.data[this.currentIndex]?this.data[this.currentIndex].title:''
 			}
 		},
+		data(){
+			return{
+				scrollY:-1,
+				currentIndex:0,
+				diff: -1
+			}
+		},
+		created(){
+			this.touch={}//数据存入
+			this.listenScroll=true
+			this.listHeight = []
+			this.probeType = 3
+		},
+		
 		methods:{
+			selectItem(item){
+				this.$emit("select",item)
+			},
 			onSgorcutTouchStart(e){         //点击跳转
 				let anchorIndex=getData(e.target,'index')
 				console.log(anchorIndex)
@@ -93,9 +111,20 @@
 				
 			},
 			_scrollTo(index){         //点击右侧字母，跳转到左侧对应的index 的方法
-				this.$refs.listView.scrollToElement(this.$refs.listGroup[index], 0)
+				 if(!index && index !==0){
+				 	return
+				 }
+				 
+				 if(index<0){
+				 	index = 0
+				 }else if(index > this.listHeight.length - 2){
+				 	 index = this.listHeight.length - 2
+				 }
+				this.scrollY=-this.listHeight[index]       //点击右侧高亮显示
+				
+				this.$refs.listView.scrollToElement(this.$refs.listGroup[index], 0)   
 			},
-			_calcuateHeight(){
+			_calcuateHeight(){    //计算每一列表的高度，并循环存入数组
 				this.listHeight=[]
 				const list = this.$refs.listGroup
 				let height = 0
@@ -108,36 +137,44 @@
 				//console.log(height)
 			}
 		},
-		watch:{
+		watch:{       //观测实时变化
 			data(){
 				setTimeout(() =>{
 					this._calcuateHeight()
 				},20)
 			},
 			scrollY(newY) {
-	        const listHeight = this.listHeight
-	        // 当滚动到顶部，newY>0
-	        if (newY > 0) {
-	          this.currentIndex = 0
-	          return
-	        }
-	        // 在中间部分滚动
-	        for (let i = 0; i < listHeight.length - 1; i++) {
-	          let height1 = listHeight[i]
-	          let height2 = listHeight[i + 1]
-	          if (-newY >= height1 && -newY < height2) {
-	            this.currentIndex = i
-	            this.diff = height2 + newY
-	            return
-	          }
-	        }
-	        // 当滚动到底部，且-newY大于最后一个元素的上限
-	        this.currentIndex = listHeight.length - 2
-	      }
+		        const listHeight = this.listHeight
+		        // 当滚动到顶部，newY>0
+		        if (newY > 0) {
+		          this.currentIndex = 0
+		          return
+		        }
+		        // 在中间部分滚动
+		        for (let i = 0; i < listHeight.length - 1; i++) {
+		          let height1 = listHeight[i]
+		          let height2 = listHeight[i + 1]
+		          if (-newY >= height1 && -newY < height2) {
+		            this.currentIndex = i
+		            this.diff = height2 + newY
+		            return
+		          }
+		        }
+		        // 当滚动到底部，且-newY大于最后一个元素的上限
+		        this.currentIndex = listHeight.length - 2
+		   },
+		   diff(newVal){           //顶部优化处理
+			   	let fixedTop=(newVal>0 && newVal<TITLE_HEIGHT)? newVal-TITLE_HEIGHT : 0
+			   	if(this.fixedTop ===fixedTop){
+			   		return
+			   	}
+		   	    this.fixedTop = fixedTop
+		   	    this.$refs.fixed.style.transform=`translate3d(0,${fixedTop}px,0)`
+		   } 
 		},
-		
 		components:{
-			Scroll
+			Scroll,
+			Loading
 		}
 	}
 	

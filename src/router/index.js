@@ -5,6 +5,7 @@ import Recommend from 'components/recommend/recommend'
 import Rank from 'components/rank/rank'
 import Rearch from 'components/search/search'
 import Singer from 'components/singer/singer'
+import SingerDetail from 'components/singer-detail/singer-detail'
 
 Vue.use(Router)
 
@@ -26,12 +27,19 @@ export default new Router({
 		{
 			path: '/rearch',
 			name: 'Rearch',
-			component: Recommend
+			component: Rearch
 		},
 		{
 			path: '/singer',
 			name: 'Singer',
-			component: Singer
+			component: Singer,
+			children:[
+			 {
+			 	path:':id',
+			 	name: 'SingerDetail',
+			 	component:SingerDetail
+			 }
+			]
 		}
 
 	]

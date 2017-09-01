@@ -1,6 +1,6 @@
 <template>
-  <div id="">
-  	搜索界面
+  <div id="xc">
+  	推荐界面2er3r3 r34 
   </div>
 </template>
 
@@ -9,5 +9,9 @@
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
- 
+ #xc{
+ 	height: 300px;
+ 	width: 50px;
+ 	background: red;
+ }
 </style>

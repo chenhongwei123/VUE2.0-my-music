@@ -17,6 +17,5 @@
 			MHeader,
 			Tab
 		},
-
 	}
 </script>
