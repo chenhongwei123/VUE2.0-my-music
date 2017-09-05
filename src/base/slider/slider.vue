@@ -16,7 +16,7 @@
 	import BScroll from 'better-scroll'
 	
 	export default{
-		
+		name: 'slider',
 		props:{
 			loop:{
 				type:Boolean,

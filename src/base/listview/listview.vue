@@ -81,6 +81,8 @@
 		
 		methods:{
 			selectItem(item){
+				//console.log(item)
+				
 				this.$emit("select",item)
 			},
 			onSgorcutTouchStart(e){         //点击跳转
@@ -177,7 +179,6 @@
 			Loading
 		}
 	}
-	
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
