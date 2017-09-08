@@ -1,6 +1,6 @@
 <template>
   <div id="">
-  	推荐界面
+  	排行界面
   </div>
 </template>
 

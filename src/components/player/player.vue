@@ -21,7 +21,7 @@
         <div class="middle">
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
+              <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
@@ -44,26 +44,26 @@
           <!--<div class="dot-wrapper">
             <span class="dot" :class="{'active':currentShow==='cd'}"></span>
             <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
-          </div>
+          </div>-->
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :percent="percent" @percentChange="onProgressBarChange"></progress-bar>
+              <progress-bar :percent="percent" @percentChange='onProgressBarChange'></progress-bar>
             </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
-          </div>-->
+          </div>
           <div class="operators">
             <div class="icon i-left">
-              <i class="icon-sequence"></i>
+              <i :class="iconMode" @click="changerMode"></i>
             </div>
-            <div class="icon i-left">
-              <i  class="icon-prev"></i>
+            <div class="icon i-left" :class="disableCls">
+              <i @click="prev" class="icon-prev"></i>
             </div>
-            <div class="icon i-center" >
-              <i class="icon-play"></i>
+            <div class="icon i-center" :class="disableCls">
+              <i @click="togglePlaying" :class="playIcon"></i>
             </div>
-            <div class="icon i-right">
-              <i  class="icon-next"></i>
+            <div class="icon i-right" :class="disableCls">
+              <i @click="next"  class="icon-next"></i>
             </div>
             <div class="icon i-right">
               <i class="icon icon-not-favorite"></i>
@@ -78,54 +78,206 @@
 	     <!--底部小的播放器-->
  	     <div class="mini-player" v-show="!fullScreen" @click="open">
 		     	 <div class="icon">
-	          <img width="40" height="40" :src="currentSong.image">
+	          <img :class="cdCls"  width="40" height="40" :src="currentSong.image">
 	        </div>
 	        <div class="text">
 	          <h2 class="name" v-html="currentSong.name"></h2>
 	          <p class="desc" v-html="currentSong.singer"></p>
 	        </div>
 	        <div class="control">
-	           <i  class="icon-mini" ></i>
+	        	<progress-circle :radius="radius" :percent="percent">
+	        		 <i  @click.stop="togglePlaying" :class="miniIcon" class="icon-mini" ></i>  
+	              <!-- @click.stop=" "  点击阻止事件冒泡-->
+	        	</progress-circle>
+	          
 	        </div>
 	        <div class="control">
 	          <i class="icon-playlist"></i>
 	        </div>
 	     </div>
 	    </transition>  
+	    <audio ref='audio'
+	    	     :src="currentSong.url" 
+	    	     @canplay="ready" 
+	    	     @error="error"
+	    	     @timeupdate="updateTime"
+	    	     @ended='end'
+	    > 
+	    </audio>
   </div>   
 </template>
 
 <script type="text/ecmascript-6">
 import {mapGetters,mapMutations} from 'vuex'
-//import animations from 'create-keyframe-animation'
-//import {prefixStyle} from 'common/js/dom'
-//import ProgressBar from 'base/progress-bar/progress-bar'
-//import ProgressCircle from 'base/progress-circle/progress-circle'
-//import {playMode} from 'common/js/config'
+import animations from 'create-keyframe-animation'
+import {prefixStyle} from 'common/js/dom'
+import ProgressBar from 'base/progress-bar/progress-bar'
+import ProgressCircle from 'base/progress-circle/progress-circle'
+import {playMode} from 'common/js/config'
+import {shuffle} from 'common/js/util'
 //import Lyric from 'lyric-parser'
 //import Scroll from 'base/scroll/scroll'
 //import {playerMixin} from 'common/js/mixin'
 //import Playlist from 'components/playlist/playlist'
 
-//const transform = prefixStyle('transform')
-//const transitionDuration = prefixStyle('transitionDuration')
+const transform = prefixStyle('transform')
+const transitionDuration = prefixStyle('transitionDuration')
   
   export default {
+  	  data(){
+  	  	return{
+  	  		songReady:false,
+  	  		currentTime:0,
+  	  		radius: 32
+  	  	}
+  	  },
       computed:{
-      	...mapGetters([
+      	cdCls(){          //播放图片旋转控制
+      		return this.playing ? 'play' : 'play pause'
+      	},
+      	playIcon(){       //大播放器的暂停播放样式变化
+      		 return this.playing? 'icon-pause' : 'icon-play'
+      	},
+      	miniIcon(){      //小播放器的暂停播放样式变化
+      		 return this.playing? 'icon-pause-mini' : 'icon-play-mini'
+      	},
+      	 percent(){        //进度条所占百分比 
+      	   return this.currentTime / this.currentSong.duration
+        },
+        iconMode(){    //判断当前播放模式，并添加相应样式
+    	console.log(this.mode)
+        	return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ?  'icon-loop' : 'icon-random'
+        },
+      	...mapGetters([  //获取vuex里的数据
       		'fullScreen',
       		'playlist',
-      		'currentSong'
+      		'currentSong',
+      		'playing',
+      		'currentIndex',
+      		'mode',
+      		'sequenceList'
       	])
       },
       methods:{
-      	back(){
+      	back(){        //点击大屏消失
       		this.setFullScreen(false)
       	},
-      	open(){
+      	open(){        //点击大屏显示
       		this.setFullScreen(true)
       	},
-      	enter(el, done) {
+      	end(){     //audio通过end（）监听歌曲播放完毕
+      		if(this.mode === playMode.loop){   //如果为单曲循环（playMode.loop）
+      			 this.loop() 
+      		}else{
+      			this.next()       
+      		}
+      	},
+      	loop(){     //单曲循环
+      		this.$refs.audio.currentTime = 0       //把播放时间设置为〇
+      		this.$refs.audio.play()               //触发重新开始播放
+      	},
+      	next(){       //下一首
+      		if(!this.songReady){
+      			return
+      		}
+      		let index = this.currentIndex + 1 //下一首歌的索引
+      		console.log(this.playlist.length)
+      		if(index === this.playlist.length){
+      			 index = 0
+      		}
+      		this.setCurrentIndex(index)
+      		
+      		if(!this.playing){
+      			  this.togglePlaying()
+      		}
+      		this.songReady = false
+      	},
+      	prev(){     //上一首
+      		if(!this.songReady){
+      			return
+      		}
+      		let index=this.currentIndex - 1
+      		if(index === -1){
+      			 index = this.playing.length - 1
+      		}
+      		this.setCurrentIndex(index)
+      		if(!this.playing){
+      			  this.togglePlaying()
+      		}
+      		this.songReady = false
+      	},
+      	ready(){        //audio的ready属性（是否切换成功）
+      		this.songReady=true
+      	},
+      	error(){       //audio的error属性    （是否切换错误）
+      		this.songReady=true
+      	},
+      	updateTime(e){
+      		this.currentTime = e.target.currentTime     //audio当前播放的时间
+      	},
+      	format(interval){         //播放时间处理
+      		interval = interval | 0       //向下取整
+      		//获取分
+      		const minute=interval / 60 |0         
+      		//获取秒
+      		const second=this._pad( interval % 60  ) 
+      		//console.log(second)
+      		return `${minute}:${second}`
+      	},
+      	onProgressBarChange(percent){
+      		//   （audio.currentTime） 可读取/设置播放时间
+      		 this.$refs.audio.currentTime=this.currentSong.duration * percent //传入最新的进度条百分比，计算当前进度条的时间
+      		 if(!this.playing){
+      		 	  this.togglePlaying()
+      		 }
+      	},
+      	changerMode(){   //切换播放模式 
+      		
+     		  const mode =(this.mode + 1) % 3 
+     		  //-------------取余-------------
+     		  //         ( 0 + 1 ) % 3 = ？
+     		  //          3 + 1 = 4
+     		  //          4 / 3 = 1 余 1
+     		  //          以此类推
+     		  
+      		this.setPlayMode(mode)
+      		 
+      		 let list = null
+      		if(mode === playMode.random){   //如果是随机播放
+      			
+      			  list = shuffle(this.sequenceList)    //洗牌，打乱列表顺序
+      			  console.log(list)
+      			  
+      		}else{                        //如果不是随机播放（顺序或循环）
+      			
+      			 list = this.sequenceList    
+      			  console.log(list)
+      		}
+      		this.resetCurrentIndex(list)
+      		this.setPlaylist(list)
+      	},
+      	resetCurrentIndex(list){       //播放模式改变时，把当前歌曲id保持不变
+      		
+      		 let index = list.findIndex((item) =>{  
+      		 	//findIndex() 方法返回传入一个测试条件（函数）符合条件的数组第一个元素位置。
+      		 	
+      		 	  return item.id === this.currentSong.id  //把原始列表中当前id赋值给新列表当前
+      		 })
+      		 	console.log(index)
+      		 	
+      		 this.setCurrentIndex(index)      //设置歌曲index
+      	},
+      	_pad(num, n = 2 ){       // 对时间操作补0 （ 3：1  转换成  3：01 ）
+      		
+      		let len= num.toString().length
+      		//console.log(len)
+      		while (len < n){
+      			num = '0' + num
+      			len++
+      		}
+      		return num
+      	},
+      	enter(el, done) {     //进入动画1
         const {x, y, scale} = this._getPosAndScale()
 
         let animation = {
@@ -139,7 +291,6 @@ import {mapGetters,mapMutations} from 'vuex'
             transform: `translate3d(0,0,0) scale(1)`
           }
         }
-
         animations.registerAnimation({
           name: 'move',
           animation,
@@ -148,27 +299,73 @@ import {mapGetters,mapMutations} from 'vuex'
             easing: 'linear'
           }
         })
-
         animations.runAnimation(this.$refs.cdWrapper, 'move', done)
       },
-      afterEnter() {
+      afterEnter() {         //进入动画后处理1
         animations.unregisterAnimation('move')
         this.$refs.cdWrapper.style.animation = ''
       },
-      leave(el, done) {
+      leave(el, done) {      //进入动画2
         this.$refs.cdWrapper.style.transition = 'all 0.4s'
         const {x, y, scale} = this._getPosAndScale()
         this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`
         this.$refs.cdWrapper.addEventListener('transitionend', done)
       },
-      afterLeave() {
+      afterLeave() {         //进入动画后处理3
         this.$refs.cdWrapper.style.transition = ''
         this.$refs.cdWrapper.style[transform] = ''
       },
-      	...mapMutations({
-      		setFullScreen:'SET_FULL_SCREEN'
-      	})
-      }
+      _getPosAndScale() {    //获取进入动画之前的初始位置数据
+        const targetWidth = 40
+        const paddingLeft = 40
+        const paddingBottom = 30
+        const paddingTop = 80
+        const width = window.innerWidth * 0.8
+        const scale = targetWidth / width
+        const x = -(window.innerWidth / 2 - paddingLeft)
+        const y = window.innerHeight - paddingTop - width / 2 - paddingBottom
+        return {
+          x,
+          y,
+          scale
+        }
+      },
+      togglePlaying(){      // 操作暂停与播放
+      	this.setPlayingState(!this.playing)
+      },
+      disableCls(){       //通过样式来处理歌曲是否切换成功
+      	return this.songReady ? '' : 'disable'
+      },
+  	  ...mapMutations({       //通过Mutations映射数据
+  		  setFullScreen:'SET_FULL_SCREEN',
+  		  setPlayingState:'SET_PLAYING_STATE',
+  		  setCurrentIndex:'SET_CURRENT_INDEX',
+  		  setPlayMode:'SET_PLAY_MODE',
+  		  setPlaylist:'SET_PLAYLIST'
+  	  })
+    },
+    watch:{      //观察Vue实例上的数据变动     
+    	currentSong(newSong , oldSong){
+    		if(newSong.id === oldSong.id){     //如果歌曲列表变化了，阻止当前歌曲的变化
+    			return
+    		}
+    		this.$nextTick(() =>{
+    			this.$refs.audio.play()
+    			
+    		})
+    	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ,
+    	playing(newPlaying){
+//  			console.log(this.currentTime / this.currentSong.duration)
+    		const audio=this.$refs.audio
+    		this.$nextTick(() =>{
+    		  newPlaying ? audio.play() : audio.pause()
+    		})
+    	}
+    },
+    components:{
+    	ProgressBar,
+    	ProgressCircle
+    }
   }
 </script>
 

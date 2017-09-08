@@ -1,3 +1,4 @@
+<!--加载基础组件-->
 <template>
   <div class="loading">
     <img width="24" height="24" src="./loading.gif">

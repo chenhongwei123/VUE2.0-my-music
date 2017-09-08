@@ -48,6 +48,7 @@
 			}
 		},
 		created() {
+			//location.reload()
 			this._getRecommend()
 			this._getDiscList()
 		},

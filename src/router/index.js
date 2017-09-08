@@ -3,9 +3,9 @@ import Router from 'vue-router'
 
 import Recommend from 'components/recommend/recommend'
 import Rank from 'components/rank/rank'
-import Rearch from 'components/search/search'
 import Singer from 'components/singer/singer'
 import SingerDetail from 'components/singer-detail/singer-detail'
+import Rearch from 'components/search/search'
 
 Vue.use(Router)
 
@@ -25,7 +25,7 @@ export default new Router({
 			component: Rank
 		},
 		{
-			path: '/rearch',
+			path: '/search',
 			name: 'Rearch',
 			component: Rearch
 		},
