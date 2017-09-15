@@ -1,3 +1,4 @@
+//创建更改函数
 import * as types from './mutation-types'
 
 const mutations = {
@@ -36,6 +37,9 @@ const mutations = {
   },
   [types.SET_FAVORITE_LIST](state, list) {
     state.favoriteList = list
+  },
+   [types.SET_DISC](state, disc) {
+    state.disc = disc
   }
 }
 

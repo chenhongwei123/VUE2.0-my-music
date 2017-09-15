@@ -14,7 +14,7 @@
 				<div class="recommend-list">
 					<h1 class="list-title">热门歌单推荐</h1>
 					<ul>
-						<li v-for="item in discList" class="item">
+						<li v-for="item in discList" class="item" @click="selectItem(item)">
 							<div class="icon">
 								<img v-lazy="item.imgurl" width="60" height="60"  />
 							</div>
@@ -30,6 +30,7 @@
             <loading></loading>
             </div>
 		</scroll>
+		<router-view></router-view>
 	</div>
 </template>
 
@@ -39,8 +40,11 @@
 	import Slider from 'base/slider/slider'
 	import { getRecommend, getDiscList } from 'api/recommend'
 	import { ERR_OK } from 'api/config'
+	import { playlistMixin } from 'common/js/mixin'
+	import {mapMutations} from "vuex"
 
 	export default {
+		mixins : [playlistMixin],       //插入mixins
 		data() {
 			return {
 				recommends: [],
@@ -53,22 +57,38 @@
 			this._getDiscList()
 		},
 		methods: {
-			_getRecommend() {
+			handlePlaylist(playlist){          //引入mixins里的handlePlaylist（）方法
+				const bottom = playlist.length > 0 ? '60px' : ''
+					//如果有列表数据，就把滚动组件的底部向上60px，从而不被底部小播放器遮盖，否则不变
+				this.$refs.recommend.style.bottom = bottom
+				this.$refs.scroll.refresh()     //调用scroll组件的刷新方法，重新刷新计算一次
+			},
+			selectItem(item){               //
+				this.$router.push({
+					path:`/recommend/${item.dissid}`
+				})
+				this.setDisc(item)           //把数据传入vuex所映射的这个方法里
+			},
+			_getRecommend() {        //获取轮播图数据
 				getRecommend().then((res) => {
 					if(res.code === ERR_OK) {
 						console.log(res.data.slider)
 						this.recommends = res.data.slider
 					}
 				})
-			},
-			_getDiscList() {
+			}, 
+			_getDiscList() {       //获取热门歌单推荐数据
 				getDiscList().then((res) => {
 					if(res.code === ERR_OK) {
 						console.log(res.data.list)
 						this.discList = res.data.list
 					}
 				})
-			}
+			},
+			...mapMutations({ 
+     	    		setDisc:"SET_DISC"      //vuex 一个映射方法
+     	    	})
+			
 		},
 		components: {
 			Slider,

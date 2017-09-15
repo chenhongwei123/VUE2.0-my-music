@@ -24,7 +24,7 @@ var proxyTable = config.dev.proxyTable
 var app = express()
 
 var apiRoutes = express.Router()
-apiRoutes.get('/getDiscList', function(req, res) {
+apiRoutes.get('/getDiscList', function(req, res) {    //歌单数据代理
 	var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
 
 	axios.get(url, {
@@ -35,6 +35,29 @@ apiRoutes.get('/getDiscList', function(req, res) {
 		params:req.query
 	}).then((response) =>{
 		res.json(response.data)
+	}).catch((e) =>{
+		console.log(e)
+	})
+})
+apiRoutes.get('/lyric', function(req, res) {    //歌词数据代理
+	var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
+
+	axios.get(url, {
+		headers: {
+			referer: 'https://c.y.qq.com/',
+			host: 'c.y.qq.com'
+		},
+		params:req.query
+	}).then((response) =>{
+		var ret = response.data
+	    if (typeof ret === 'string') {      //如果数据为字符串
+	      var reg = /^\w+\(({[^()]+})\)$/   //通过正则来匹配
+	      var matches = ret.match(reg)
+	      if (matches) {                    //如果匹配成功
+	        ret = JSON.parse(matches[1])    //JSON.parse() 处理成对象类型
+	      }
+	    }
+	    res.json(ret)         
 	}).catch((e) =>{
 		console.log(e)
 	})

@@ -1,9 +1,8 @@
 import jsonp from 'common/js/jsonp'
 import { commonParams, options } from './config'
 
-export function getSingerList() {
+export function getSingerList() {             //获取所有歌手列表
 	const url = 'https://c.y.qq.com/v8/fcg-bin/v8.fcg'
-
 	const data = Object.assign({}, commonParams, {
 		channel: 'singer',
 		page: 'list',
@@ -17,7 +16,7 @@ export function getSingerList() {
 	return jsonp(url,data,options) 
 }
 
-export function getSingerDetail(singerId){
+export function getSingerDetail(singerId){        //获取某个歌手的歌曲列表
 	 const url = 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg'
 	const data =Object.assign({},commonParams,{
 		hostUin: 0,
@@ -25,7 +24,7 @@ export function getSingerDetail(singerId){
 	    platform: 'yqq',
 	    order: 'listen',
 	    begin: 0,
-	    num: 80,
+	    num: 100,
 	    songstatus: 1,
 	    singermid: singerId
 	})

@@ -1,4 +1,5 @@
-	<template>
+<!--better-scroll的上下滚动组件-->
+<template>
   <div ref="wrapper">
     <slot></slot>
   </div>

@@ -1,3 +1,4 @@
+<!--歌手列表基础组件-->
 <template>
 	<scroll :data='data'
 		    class='listview'
@@ -80,10 +81,9 @@
 		},
 		
 		methods:{
-			selectItem(item){
+			selectItem(item){     
 				//console.log(item)
-				
-				this.$emit("select",item)
+				this.$emit("select",item)      //把数据传出去 （其它组件通过@select='' 获取）
 			},
 			onSgorcutTouchStart(e){         //点击跳转
 				let anchorIndex=getData(e.target,'index')
@@ -106,6 +106,9 @@
 				let anchorIndex=parseInt(this.touch.anchorIndex)    + delta         //计算获取所要跳转的index
 			
 			    this._scrollTo(anchorIndex)
+			},
+			refresh(){     //为list暴露接口    
+				this.$refs.listView.refresh()    //调用listView的scroll
 			},
 			scroll(pos){
 				this.scrollY=pos.y

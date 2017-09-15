@@ -33,17 +33,20 @@
     },
     methods:{
     	progressTouchStart(e){      //手指点击                  点击按钮时，进度条的偏移
-    		this.touch.initiated = true               //表示已经初始化
+    		this.touch.initiated = true                 //表示已经初始化
     		this.touch.startX = e.touches[0].pageX     //记录横向第一个手指的位置
-    		this.touch.left  = this.$refs.progress.clientWidth  //记录当前按钮的偏移位置（就是进度条的位置）
+    		this.touch.left  = this.$refs.progress.clientWidth  //记录当前按钮的偏移位置（就是进度条按钮的位置）
     		
     	},
     	progressTouchMove(e){     //手指滑动
     		    if(!this.touch.initiated){
     		    	return
     		    }
-    		    const deltaX=e.touches[0].pageX - this.touch.startX   //移动的距离
+    		    const deltaX=e.touches[0].pageX - this.touch.startX   //（纵向的偏移量） 进度条移动的距离 = 手指移动的距离 - 初始位置
+//  		    console.log(e.touches[0].pageX)
+             console.log(this.touch.left)
     		    const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBtnWidth, Math.max(0, this.touch.left + deltaX))
+    		                        //    小于   进度条的实际长度                                                                                                            ，                    大于    0   （最初已经偏移量             + 滑动后偏移量）         
     		    this._offset(offsetWidth)
     	},
     	progressTouchEnd(){        //手指离开
@@ -51,8 +54,9 @@
     		this._triggerPercent()
     	},
     	progressClick(e){    //点击滚动条，播放当前位置开始的进度
-        const rect = this.$refs.progressBar.getBoundingClientRect()
+        const rect = this.$refs.progressBar.getBoundingClientRect() //getBoundingClientRect（）：获取某个元素相对于视窗的位置集合
         const offsetWidth = e.pageX - rect.left
+        
         this._offset(offsetWidth)
         // 这里当我们点击 progressBtn 的时候，e.offsetX 获取不对
          this._offset(e.offsetX)
@@ -61,8 +65,10 @@
     	},
     	_triggerPercent(){
     		const barWidth =this.$refs.progressBar.clientWidth - progressBtnWidth     //进度条总长度
+    		
     	  // （当前进度条长度 / 进度条总长度 = 当前进度条百分比）
     		const percent = this.$refs.progress.clientWidth / barWidth       
+    		
     		this.$emit('percentChange', percent)                                     //将当前进度条百分比派发出去 
     	},
     	_offset(offsetWidth){      //获取移动距离修改样式

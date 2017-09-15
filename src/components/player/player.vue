@@ -18,18 +18,25 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle"
+        	   @touchstart.prevent='middleTouchStart'
+        	   @touchmove.prevent='middleTouchMove'
+        	   @touchend='middleTouchEnd'
+        >       
+          <!--滚动cd图片-->
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
-            <!--<div class="playing-lyric-wrapper">
+            <!--单条歌词显示-->
+            <div class="playing-lyric-wrapper">
               <div class="playing-lyric">{{playingLyric}}</div>
-            </div>-->
+            </div>
           </div>
-          <!--<scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+          <!--全部歌词显示-->
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
                 <p ref="lyricLine"
@@ -38,13 +45,13 @@
                    v-for="(line,index) in currentLyric.lines">{{line.txt}}</p>
               </div>
             </div>
-          </scroll>-->
+          </scroll>
         </div>
         <div class="bottom">
-          <!--<div class="dot-wrapper">
+          <div class="dot-wrapper">
             <span class="dot" :class="{'active':currentShow==='cd'}"></span>
             <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
-          </div>-->
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
@@ -52,6 +59,7 @@
             </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
+          <!--底部播放操作台-->
           <div class="operators">
             <div class="icon i-left">
               <i :class="iconMode" @click="changerMode"></i>
@@ -115,8 +123,8 @@ import ProgressBar from 'base/progress-bar/progress-bar'
 import ProgressCircle from 'base/progress-circle/progress-circle'
 import {playMode} from 'common/js/config'
 import {shuffle} from 'common/js/util'
-//import Lyric from 'lyric-parser'
-//import Scroll from 'base/scroll/scroll'
+import Lyric from 'lyric-parser'     //歌词解析
+import Scroll from 'base/scroll/scroll'
 //import {playerMixin} from 'common/js/mixin'
 //import Playlist from 'components/playlist/playlist'
 
@@ -128,10 +136,17 @@ const transitionDuration = prefixStyle('transitionDuration')
   	  	return{
   	  		songReady:false,
   	  		currentTime:0,
-  	  		radius: 32
+  	  		radius: 32,
+  	  		currentLyric: null,   //当前歌曲的歌词
+  	  		currentLineNum: 0 ,  //当前歌词所在的行
+  	  		currentShow: 'cd' ,    //滑动绑定样式
+  	  		playingLyric: ''
   	  	}
   	  },
-      computed:{
+  	  created(){   //实例已经创建完成之后被调用
+  	  	this.touch={}  //把触摸滑动位置共享数据挂载到这个对象里    （其他地方可以共享使用）
+  	  },
+      computed:{   //计算属性
       	cdCls(){          //播放图片旋转控制
       		return this.playing ? 'play' : 'play pause'
       	},
@@ -145,7 +160,7 @@ const transitionDuration = prefixStyle('transitionDuration')
       	   return this.currentTime / this.currentSong.duration
         },
         iconMode(){    //判断当前播放模式，并添加相应样式
-    	console.log(this.mode)
+    	  //console.log(this.mode)
         	return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ?  'icon-loop' : 'icon-random'
         },
       	...mapGetters([  //获取vuex里的数据
@@ -165,7 +180,7 @@ const transitionDuration = prefixStyle('transitionDuration')
       	open(){        //点击大屏显示
       		this.setFullScreen(true)
       	},
-      	end(){     //audio通过end（）监听歌曲播放完毕
+      	end(){     //audio通过end（）监听歌曲播放完毕       （播放完毕后自动跳到下一首）
       		if(this.mode === playMode.loop){   //如果为单曲循环（playMode.loop）
       			 this.loop() 
       		}else{
@@ -173,37 +188,53 @@ const transitionDuration = prefixStyle('transitionDuration')
       		}
       	},
       	loop(){     //单曲循环
-      		this.$refs.audio.currentTime = 0       //把播放时间设置为〇
+      		this.$refs.audio.currentTime = 0       //把播放时间设置为0
       		this.$refs.audio.play()               //触发重新开始播放
+        	if(this.currentLyric){
+    			  this.currentLyric.seek(0)    //循环到下一首时，歌词也跟着跳转
+          }
       	},
       	next(){       //下一首
       		if(!this.songReady){
       			return
       		}
-      		let index = this.currentIndex + 1 //下一首歌的索引
-      		console.log(this.playlist.length)
-      		if(index === this.playlist.length){
-      			 index = 0
-      		}
-      		this.setCurrentIndex(index)
       		
-      		if(!this.playing){
-      			  this.togglePlaying()
+      		if(this.playlist.length === 1){    //如果播放列表只有一首歌
+      			this.loop()                      //则进行循环播放
+      		}else{
+      			let index = this.currentIndex + 1 //下一首歌的索引
+      		  console.log(this.playlist.length)
+      		
+      		  if(index === this.playlist.length){ //如果是最后一首歌，则切换到第一首歌
+      			   index = 0
+      		  }
+      		  this.setCurrentIndex(index)       //索引变为index
+      		
+      		  if(!this.playing){          //如果点击下一首按钮状态为暂停时
+      			   this.togglePlaying()     //变为播放状态，与之匹配
+      		  }
       		}
+      		
+      		
       		this.songReady = false
       	},
       	prev(){     //上一首
       		if(!this.songReady){
       			return
       		}
-      		let index=this.currentIndex - 1
-      		if(index === -1){
-      			 index = this.playing.length - 1
-      		}
-      		this.setCurrentIndex(index)
-      		if(!this.playing){
-      			  this.togglePlaying()
-      		}
+      		if(this.playlist.length === 1){    //如果播放列表只有一首歌
+      			this.loop()                      //则进行循环播放
+      		}else{
+	      		let index=this.currentIndex - 1
+	      		if(index === -1){                //如果第一首歌之前一首，变为最后一首歌的索引
+	      			 index = this.playlist.length - 1
+	      		}
+	      		this.setCurrentIndex(index)      //索引变为index
+	      		
+	      		if(!this.playing){              //如果点击上一首按钮状态为暂停时
+	      			  this.togglePlaying()        //变为播放状态，与之匹配
+	      		}
+	      	}	
       		this.songReady = false
       	},
       	ready(){        //audio的ready属性（是否切换成功）
@@ -224,15 +255,20 @@ const transitionDuration = prefixStyle('transitionDuration')
       		//console.log(second)
       		return `${minute}:${second}`
       	},
-      	onProgressBarChange(percent){
-      		//   （audio.currentTime） 可读取/设置播放时间
-      		 this.$refs.audio.currentTime=this.currentSong.duration * percent //传入最新的进度条百分比，计算当前进度条的时间
-      		 if(!this.playing){
+      	onProgressBarChange(percent){      //（audio.currentTime） 可读取/设置播放时间
+      		
+      		const  currentTime= this.currentSong.duration * percent    //计算当前进度条的时间
+      		this.$refs.audio.currentTime=currentTime              //传入最新的进度条百分比，
+      		
+      	  if(!this.playing){
       		 	  this.togglePlaying()
-      		 }
+      	  }
+      	  
+        	if(this.currentLyric){
+    			   this.currentLyric.seek(currentTime*1000)    //滑动滚动条，歌词也随之跳转至准确时间
+    		  }
       	},
       	changerMode(){   //切换播放模式 
-      		
      		  const mode =(this.mode + 1) % 3 
      		  //-------------取余-------------
      		  //         ( 0 + 1 ) % 3 = ？
@@ -261,11 +297,110 @@ const transitionDuration = prefixStyle('transitionDuration')
       		 let index = list.findIndex((item) =>{  
       		 	//findIndex() 方法返回传入一个测试条件（函数）符合条件的数组第一个元素位置。
       		 	
-      		 	  return item.id === this.currentSong.id  //把原始列表中当前id赋值给新列表当前
+      		 	  return item.id === this.currentSong.id  //把原始列表中当前id赋值给新列表当前id
       		 })
       		 	console.log(index)
       		 	
       		 this.setCurrentIndex(index)      //设置歌曲index
+      	},
+      	getLyric(){        //歌词处理
+      		this.currentSong.getLyric().then((lyric) =>{    //拿到 lyric 这个数据
+      			this.currentLyric = new Lyric(lyric,this.handleLyric) //通过lyric-parser插件来歌词解析
+      			                                                      // this.handleLyric 是回调函数
+      			if( this.playing ){                //如果歌曲在播放
+      				 this.currentLyric.play()        //触发歌词滚动
+      			}
+//    			console.log(this.currentLyric)
+      		}).catch( () =>{        //catch() 异常处理
+      			                      //当获取不到歌词时候，做一些清理操作
+      			  this.currentLyric = null    
+      			  this.playingLyric = ''
+      			  this.currentLineNum= 0
+      		})
+      	},
+      	handleLyric({lineNum, txt}){  //歌词解的回调函数 （当歌曲的行发生改变时进行回调）
+      		this.currentLineNum = lineNum     //当前行
+      		if(lineNum>5){            //如果歌词大于五行
+      			let lineEl= this.$refs.lyricLine[lineNum-5]     //当前行-5
+//    		  console.log(this.$refs.lyricLine[lineNum])
+//    		  console.log(lineEl)
+      			this.$refs.lyricList.scrollToElement(lineEl, 1000)    //
+      		}else{
+      			this.$refs.lyricList.scrollTo(0, 0, 1000)
+      		}
+      		
+      		this.playingLyric = txt   //当前播放的歌词映射到 单条歌词显示的div中
+      	},
+      	middleTouchStart(e){  //手指刚刚触摸到屏幕时     
+      		this.touch.initiated = true           //表示已经初始化 (初始化标志位)
+      		const touch = e.touches[0]          //记录第一个手指
+      		this.touch.startX = touch.pageX     //记录 横向 第一个手指的位置
+      		this.touch.startY = touch.pageY     //记录 纵向 第一个手指的位置
+      	},
+      	middleTouchMove(e){  //手指滑动时  
+      		if(!this.touch.initiated){    //如果没有初始化，返回什么都不做
+      			 return
+      		}
+      		const touch= e.touches[0]          //记录第一个手指
+      		const daltaX = touch.pageX - this.touch.startX //（横向的偏移量） 手指滑动的距离 - 初始记录位置
+      		//console.log(daltaX)
+      		const daltaY = touch.pageY - this.touch.startY //（纵向的偏移量） 手指滑动的距离 - 初始记录位置
+      		
+      		if(Math.abs(daltaY) > Math.abs(daltaX)){   //如果纵向的偏移量大于横向的偏移量时，什么都不做
+      			return                         
+      		}
+      		
+      		const left = this.currentShow ==="cd" ? 0 : -window.innerWidth 
+      		// 以页面最右边为中间线，如果歌词还在中间线右边（隐藏），left = 0，否则  left = 页面的宽度
+      		
+      		const offsetWidth =Math.min(0, Math.max(-window.innerWidth, left + daltaX ) ) 
+      		//       偏移宽度           =  小于    (0 ,   大于   （    最小值为 页面的宽度 ,   left的值    + 横向的偏移量）)  右滑为负，左滑为正 
+      		
+      		this.touch.percent = Math.abs(offsetWidth / window.innerWidth) //滑动的百分比
+      	  //	console.log(this.touch.percent)
+      		
+      		this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+      		//  设置歌词滚动组件移动距离的样式
+      		//  lyricList 是个组件 ，无法在当前操作此组件的DOM， 只有加上 $el(elenemt)来访问它的DOM
+      		
+      		this.$refs.lyricList.$el.style[transitionDuration] =0   //移动过渡效果初始化为0
+      		
+      		this.$refs.middleL.style.opacity = 1 - this.touch.percent
+      		//设置 唱片图片的透明度，如滑动百分比越大，透明度就越小，反之亦然
+      		this.$refs.middleL.style[transitionDuration] =0   //透明度过渡效果初始化为0
+      	},
+      	middleTouchEnd(){       //手指离开屏幕时  
+      		let offsetWidth        //定义歌词所停的位置
+      		let opacity           //设置透明度
+      		if(this.currentShow === "cd"){  //从右向左滑 （滑动的初始百分比为0%）
+      			
+  			    if(this.touch.percent > 0.1){  //如果滑动距离超过了10%
+  			   	   offsetWidth = -window.innerWidth  //歌词所停的位置就是页面宽度
+  			   	   this.currentShow = "lyric"       //说明歌词向左滚过来了，就改变绑定样式为"lyric" 
+  			   	   opacity = 0
+  			    }else{
+  			   	 offsetWidth = 0                     //否则为零，不动
+  			   	 opacity = 1
+  			    }
+      		}else{                            //从左向右滑时  （滑动的初始百分比为100%）
+      			if(this.touch.percent < 0.9){  // 如果滑动距离不超过了90%
+      				  offsetWidth = 0             // 
+      				  this.currentShow = "cd"       //说明歌词向右滚过去了，就改变绑定样式为"cd" 
+      				  opacity = 1
+      			}else{
+      				offsetWidth = -window.innerWidth  //否则没有滑动，距离还是页面宽度
+      				opacity = 0
+      			}
+      		}
+      		const time = 300
+      		
+      		this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`  //移动距离样式
+      		this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`  //移动过渡效果
+      		
+      		this.$refs.middleL.style.opacity = opacity
+      		//设置 唱片图片的透明度，如滑动百分比越大，透明度就越小，反之亦然
+      		this.$refs.middleL.style[transitionDuration] = `${time}ms`  //透明度过渡效果
+      		
       	},
       	_pad(num, n = 2 ){       // 对时间操作补0 （ 3：1  转换成  3：01 ）
       		
@@ -332,6 +467,10 @@ const transitionDuration = prefixStyle('transitionDuration')
       },
       togglePlaying(){      // 操作暂停与播放
       	this.setPlayingState(!this.playing)
+      	console.log(this.currentLyric)
+      	if (this.currentLyric) {
+          this.currentLyric.togglePlay()    //切换歌曲之前停止当前歌词播放
+        }
       },
       disableCls(){       //通过样式来处理歌曲是否切换成功
       	return this.songReady ? '' : 'disable'
@@ -345,26 +484,40 @@ const transitionDuration = prefixStyle('transitionDuration')
   	  })
     },
     watch:{      //观察Vue实例上的数据变动     
-    	currentSong(newSong , oldSong){
+    	
+    	currentSong(newSong , oldSong){      //两个参数：第一个新的数据，第二个老的数据
+ 
     		if(newSong.id === oldSong.id){     //如果歌曲列表变化了，阻止当前歌曲的变化
     			return
     		}
-    		this.$nextTick(() =>{
+    		
+    		if(this.currentLyric){
+    			this.currentLyric.stop()    //切换歌曲之前停止当前歌词播放
+    		}
+    		
+    		setTimeout(() =>{    
     			this.$refs.audio.play()
-    			
-    		})
-    	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ,
-    	playing(newPlaying){
-//  			console.log(this.currentTime / this.currentSong.duration)
+    			this.getLyric()    //获取歌词
+    		},1000) 
+    	} ,
+    	playing(newPlaying, oldPlaying){      //实时观测歌曲播放的状态
+    		//console.log(newPlaying)
+    		//console.log(oldplaying)
     		const audio=this.$refs.audio
     		this.$nextTick(() =>{
+    			//  $nextTick()方法   :  1.Vue 实现响应式并不是数据发生变化之后 DOM 立即变化，而是按一定的策略进行 DOM 的更新。
+    			//                    2.因为DOM至少会在当前tick里面的代码全部执行完毕再更新。所以不可能做到在修改数据后并且
+    			//                      DOM更新后再执行，要保证在DOM更新以后再执行某一块代码，就必须把这块代码放到下一次事件
+    			//                      循环里面，比如setTimeout(fn, 0)，这样DOM更新后，就会立即执行这块代码。
+    			//                    3.所以，必须等DOM更新完后，才能进行数据操作
     		  newPlaying ? audio.play() : audio.pause()
     		})
     	}
     },
     components:{
     	ProgressBar,
-    	ProgressCircle
+    	ProgressCircle,
+    	Scroll
     }
   }
 </script>

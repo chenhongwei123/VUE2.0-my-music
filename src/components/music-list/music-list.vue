@@ -8,7 +8,7 @@
       <div class="play-wrapper">
         <div ref="playBtn" v-show="songs.length>0" class="play">
           <i class="icon-play"></i>
-          <span class="text">随机播放全部</span>
+          <span class="text" @click="random">随机播放全部</span>
         </div>
       </div>
       <div class="filter" ref="filter"></div>
@@ -34,7 +34,7 @@ import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
 import SongList from 'base/song-list/song-list'
 import {prefixStyle} from 'common/js/dom'
-//import {playlistMixin} from 'common/js/mixin'
+import {playlistMixin} from 'common/js/mixin'
 import {mapActions} from 'vuex'
 
 const RESERVED_HEIGHT = 40
@@ -42,8 +42,8 @@ const transform = prefixStyle('transform')
 const backdrop = prefixStyle('backdrop-filter')
 
   export default {
-//  mixins: [playlistMixin],
-    props: {
+    mixins: [playlistMixin],   //插入mixins
+    props: {         //通过props获取外部所提供的数据
       bgImage: {
         type: String,
         default: ''
@@ -82,25 +82,37 @@ const backdrop = prefixStyle('backdrop-filter')
     	this.$refs.list.$el.style.top = `${this.imageHeight}px`
     },
     methods:{
-    	scroll(pos){
-    		//console.log(pos)
+    	handlePlaylist(playlist){   //引入mixins里的handlePlaylist（）方法
+    		console.log(playlist) 
+    		const bottom = playlist.length > 0 ? '60px' : ''  
     		
+    		this.$refs.list.$el.style.bottom = bottom
+    		this.$refs.list.refresh()  //调用scroll组件的刷新方法，重新刷新计算一次
+    	},
+    	scroll(pos){         //滚动
+    		//console.log(pos)
     		this.scrollY = pos.y
     	},
-    	back(){
+    	back(){              //后退一页
     		this.$router.back()
     	},
-    	selectItem(item, index){
+    	selectItem(item, index){      //获取子组件（song-list） 传来的数据
 //  		console.log(item)
 //  		console.log(index)
 //  		console.log(this.songs)
-    		this.selectPlay({
-    			list:this.songs,
+    		this.selectPlay({     //歌曲列表与索引 传入
+    			list: this.songs,
     			index
     		})
     	},
-    	...mapActions([
-    		'selectPlay'
+    	random(){      //点击随机播放
+    		this.randomPlay({    //歌曲列表传入
+    			list: this.songs
+    		})
+    	},
+    	...mapActions([   //获取mapActions的方法
+    		'selectPlay',
+    		'randomPlay'
     	])
     },
     watch:{

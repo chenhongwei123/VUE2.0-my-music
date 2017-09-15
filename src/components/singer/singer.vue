@@ -11,11 +11,13 @@
 	import {ERR_OK} from 'api/config'
 	import Singer from 'common/js/singer'
 	import {mapMutations} from "vuex"
+	import {playlistMixin} from 'common/js/mixin'
 	
 	  const HOT_NAME='热门'
 	  const HOT_SINGER_LEN = 10
 	  
      export default{
+     	  mixins :[playlistMixin], //插入mixins
      	    data(){
      	     	return{
      	     		singers:[]
@@ -25,19 +27,20 @@
      	    	this._getSingerList()
      	    },
      	    methods:{
-//   	    	 handlePlaylist(playlist) {
-//			        const bottom = playlist.length > 0 ? '60px' : ''
-//			        this.$refs.singer.style.bottom = bottom
-//			        this.$refs.list.refresh()
-//			      },
-     	    	selectSinger(singer){
+     	    	handlePlaylist(playlist){  //引入mixins里的handlePlaylist（）方法
+     	    		const bottom = playlist.length > 0 ? "60px" : ''
+     	    		//如果有列表数据，就把滚动组件的底部向上60px，从而不被底部小播放器遮盖，否则不变
+     	    		this.$refs.singer.style.bottom = bottom
+     	    		this.$refs.list.refresh()    //调用scroll组件的刷新方法，重新刷新计算一次
+     	    	},
+     	    	selectSinger(singer){    //点击每一个歌手路由跳转至
      	    		//console.log(singer)
      	    		this.$router.push({
      	    			path:`/singer/${singer.id}`
      	    		})
      	    		this.setSinger(singer)
      	    	},
-     	    	_getSingerList(){
+     	    	_getSingerList(){  
      	    		getSingerList().then((res) =>{
      	    			if(res.code==ERR_OK){
      	    				 console.log(this._normalizeSinger(res.data.list))
@@ -47,7 +50,8 @@
      	    		})
      	    	},
      	    	_normalizeSinger(list){            //对数据重新创建并排列
-     	    		let map={
+     	    		console.log(list)
+     	    		let map={                       //重新创建一个map.hot对象（热门数据）
      	    			hot:{               
      	    				title:HOT_NAME,
      	    				items:[]
@@ -55,13 +59,14 @@
      	    		}
      	    		
      	    		list.forEach((item, index) => {
-			          if (index < HOT_SINGER_LEN) {
-			            map.hot.items.push(new Singer({
+			          if (index < HOT_SINGER_LEN) {  //如果indx<10
+			            map.hot.items.push(new Singer({    //将数据push到map对象的hot里面
 			              name: item.Fsinger_name,
 			              id: item.Fsinger_mid
 			            }))
 			          }
 			          const key = item.Findex
+			         // console.log(map[key])
 			          if (!map[key]) {          //如果没有key，就进行创建对象
 			            map[key] = {
 			              title: key,

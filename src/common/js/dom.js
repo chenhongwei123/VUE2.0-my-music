@@ -1,16 +1,19 @@
-export function hasClass(el, className) {
-  let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
+export function hasClass(el, className) {    //获取dom对象的class
+  let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')     //前后可以包括空白字符
   return reg.test(el.className)
 }
 
 export function addClass(el, className) {
-  if (hasClass(el, className)) {
+  if (hasClass(el, className)) {   //如果有这个class
     return
   }
-
+  //console.log(className)
   let newClass = el.className.split(' ')
+ //console.log(newClass)
   newClass.push(className)
-  el.className = newClass.join(' ')
+//console.log(newClass)
+  el.className = newClass.join(' ')      //把样式加进去
+  //console.log(el.className)
 }
 
 export function getData(el, name, val) {
@@ -23,7 +26,7 @@ export function getData(el, name, val) {
 
 let elementStyle = document.createElement('div').style
 
-let vendor = (() => {
+let vendor = (() => {         //浏览器兼容性封装
   let transformNames = {
     webkit: 'webkitTransform',
     Moz: 'MozTransform',

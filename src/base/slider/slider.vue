@@ -1,3 +1,4 @@
+<!--better-scroll的轮播基础组件-->
 <template>
 	<div class="slider" ref='slider'>
 		<div class="slider-group" ref='sliderGroup' >
@@ -59,11 +60,11 @@
 		methods:{
 			_setSliderWidth(isResize){                  //算出轮播容器（sliderGroup）的宽度
 				this.children=this.$refs.sliderGroup.children
-				console.log(this.children.length)
+				//console.log(this.children.length)
 				
 				let width=0
 				let sliderWidth = this.$refs.slider.clientWidth
-				console.log(sliderWidth)
+				//console.log(sliderWidth)
 				for(let i=0 ; i<this.children.length;i++){
 					let child = this.children[i]
 					addClass(child,'slider-item')

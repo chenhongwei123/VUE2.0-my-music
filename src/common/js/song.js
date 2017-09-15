@@ -1,9 +1,9 @@
-//import {getLyric} from 'api/song'
+import {getLyric} from 'api/song'
 import {ERR_OK} from 'api/config'
 import {Base64} from 'js-base64'
 
-export default class Song {
-  constructor({id, mid, singer, name, album, duration, image, url}) {
+export default class Song {       //创建一个Song 对象
+  constructor({id, mid, singer, name, album, duration, image, url}) {  //constructor 属性返回对创建此对象的数组函数的引用。
     this.id = id
     this.mid = mid
     this.singer = singer
@@ -14,7 +14,7 @@ export default class Song {
     this.url = url
   }
 
-  getLyric() {
+  getLyric() {         //获取歌词
     if (this.lyric) {
       return Promise.resolve(this.lyric)
     }
@@ -22,7 +22,8 @@ export default class Song {
     return new Promise((resolve, reject) => {
       getLyric(this.mid).then((res) => {
         if (res.retcode === ERR_OK) {
-          this.lyric = Base64.decode(res.lyric)
+          this.lyric = Base64.decode(res.lyric)   //Base64进行解码歌词
+         // console.log(this.lyric)
           resolve(this.lyric)
         } else {
           reject('no lyric')
@@ -33,7 +34,7 @@ export default class Song {
 }
 
 export function createSong(musicData) {
-  return new Song({
+  return new Song({                  //把数据传入，从而一个创建一个新对象
     id: musicData.songid,
     mid: musicData.songmid,
     singer: filterSinger(musicData.singer),
