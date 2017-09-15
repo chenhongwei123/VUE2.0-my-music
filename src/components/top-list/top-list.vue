@@ -1,3 +1,4 @@
+<!--排行榜-->
 <template>
   <transition name="slide">
     <music-list :title="title" :bgImage='bgImage'></music-list>
