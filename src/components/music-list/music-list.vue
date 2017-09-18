@@ -20,7 +20,7 @@
     	      :listen-scroll='listenScroll'
     	      class="list" ref="list">
      <div class="song-list-wrapper">
-        <song-list @select='selectItem' :songs="songs"></song-list>
+        <song-list :rank='rank' @select='selectItem' :songs="songs"></song-list>
       </div>
       <div v-show="!songs.length" class="loading-container">
         <loading></loading>

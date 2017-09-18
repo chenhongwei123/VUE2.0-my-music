@@ -4,20 +4,15 @@
     <ul>
     	
     	<li @click="selectItem(song ,index)" v-for='(song,index) in songs' class="item">
+    		<div class="rank" v-show="rank">
+    		 	  <span :class="getRankCls(index)" v-text="getRankText(index)"> </span>
+    		 </div>
     		 <div class="content">
     		 	 <h2 class="name">{{song.name}}</h2>
     		 	 <p class="desc">{{getDesc(song)}}</p>
     		 </div>
+    		 
     	</li>
-      <!--<li @click="selectItem(song, index)" class="item" v-for="(song, index) in songs">
-        <div class="rank" v-show="rank">
-          <span :class="getRankCls(index)" v-text="getRankText(index)"></span>
-        </div>
-        <div class="content">
-          <h2 class="name">{{song.name}}</h2>
-          <p class="desc">{{getDesc(song)}}</p>
-        </div>
-      </li>-->
     </ul>
   </div>
 </template>
@@ -38,35 +33,27 @@ export default {
 //  	console.log(this.songs)
 //  },
     methods:{
-    	getDesc(song){
+    	getDesc(song){         //歌曲名--歌唱作者
     		//console.log(song)
     		return `${song.singer} - ${song.album} `
     		
     	},
-    	selectItem(item,index){
+    	selectItem(item,index){   //把歌曲数据传到外面
     		this.$emit('select',item,index)
+    	},
+    	getRankCls(index){    //排行榜的排行样式
+    		if(index<=2){
+    			 return `icon icon${index}`
+    		}else{
+    			return 'text'
+    		}
+    	},
+    	getRankText(index){ 
+    		if (index > 2) {    //如果排行榜数据大于2
+          return index + 1  //排行榜数据加1 （0开始）
+        }
     	}
     }
-//  methods: {
-//    selectItem(item, index) {
-//      this.$emit('select', item, index)
-//    },
-//    getDesc(song) {
-//      return `${song.singer}·${song.album}`
-//    },
-//    getRankCls(index) {
-//      if (index <= 2) {
-//        return `icon icon${index}`
-//      } else {
-//        return 'text'
-//      }
-//    },
-//    getRankText(index) {
-//      if (index > 2) {
-//        return index + 1
-//      }
-//    }
-//  }
 }
 </script>
 
