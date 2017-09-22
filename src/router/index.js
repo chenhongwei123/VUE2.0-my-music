@@ -39,7 +39,14 @@ export default new Router({
 		{
 			path: '/search',
 			name: 'Rearch',
-			component: Rearch
+			component: Rearch,
+			children:[
+			 {
+			 	path:':id',
+			 	name: 'SingerDetail',
+			 	component:SingerDetail
+			 }
+			]
 		},
 		{
 			path: '/singer',

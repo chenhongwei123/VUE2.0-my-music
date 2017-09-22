@@ -13,7 +13,7 @@ export function shuffle(arr) {             //数组数据打乱
   return _arr
 }
 
-export function debounce(func, delay) {
+export function debounce(func, delay) {      //截留函数
   let timer
 
   return function (...args) {

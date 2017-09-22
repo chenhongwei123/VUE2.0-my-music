@@ -1,3 +1,4 @@
+<!--搜索框基础组件-->
 <template>
   <div class="search-box">
     <i class="icon-search"></i>
@@ -7,7 +8,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-//import {debounce} from 'common/js/util'
+import {debounce} from 'common/js/util'
 
 export default {
       props:{
@@ -26,13 +27,16 @@ export default {
 	    	 this.query=''
 	    	},
 	    	setQuery(query){     //点击热门搜索块，并把标题赋值给搜索框的一个方法
-	    	this.query = query
+	    	 this.query = query
+	      },
+	      blur(){        //失去焦点事件方法
+	      	this.$refs.query.blur()
 	      }
 	    },
 	    created(){
-	    	this.$watch('query',(newQuery) =>{    //query的值，暴露到外边
+	    	this.$watch('query', debounce((newQuery) =>{    //query的值，暴露到外边           debounce()截流函数，防止搜索歌曲时，过度浪费加载 
 	    		this.$emit('query',newQuery)         //派发出去
-	    	})
+	    	},200))
 	    }
 }
 </script>

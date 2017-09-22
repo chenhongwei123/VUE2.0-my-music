@@ -34,7 +34,7 @@ export default class Song {       //创建一个Song 对象
 }
 
 export function createSong(musicData) {
-  return new Song({                  //把数据传入，从而一个创建一个新对象
+  return new Song({                  //把数据传入，从而创建一个新对象
     id: musicData.songid,
     mid: musicData.songmid,
     singer: filterSinger(musicData.singer),
@@ -46,7 +46,7 @@ export function createSong(musicData) {
   })
 }
 
-function filterSinger(singer) {
+export function filterSinger(singer) {
   let ret = []
   if (!singer) {
     return ''
@@ -54,6 +54,7 @@ function filterSinger(singer) {
   singer.forEach((s) => {
     ret.push(s.name)
   })
+ // console.log(ret)
   return ret.join('/')
 }
 

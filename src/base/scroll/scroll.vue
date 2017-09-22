@@ -18,7 +18,7 @@
         type: Boolean,
         default: true
       },
-      listenScroll: {
+      listenScroll: {  
         type: Boolean,
         default: false
       },
@@ -26,11 +26,11 @@
         type: Array,
         default: null
       },
-      pullup: {
+      pullup: {               //是否开启上拉加载
         type: Boolean,
         default: false
       },
-      beforeScroll: {
+      beforeScroll: {        //
         type: Boolean,
         default: false
       },
@@ -61,17 +61,31 @@
           })
         }
 
+//      if (this.pullup) {
+//        this.scroll.on('scrollEnd', () => {
+//          if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+//            this.$emit('scrollToEnd')
+//          }
+//        })
+//      }
+
+//      if (this.beforeScroll) {
+//        this.scroll.on('beforeScrollStart', () => {
+//          this.$emit('beforeScroll')
+//        })
+//      }
+        
         if (this.pullup) {
           this.scroll.on('scrollEnd', () => {
-            if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
-              this.$emit('scrollToEnd')
-            }
+          	if(this.scroll.y <= this.scroll.maxScrollY + 50){  //滚动到底部
+          	 this.$emit('scrollToEnd')
+          	}
           })
         }
-
-        if (this.beforeScroll) {
-          this.scroll.on('beforeScrollStart', () => {
-            this.$emit('beforeScroll')
+        
+        if(this.beforeScroll){
+        	this.scroll.on('beforeScrollStart', () => {
+          	 this.$emit('beforeScroll')
           })
         }
       },

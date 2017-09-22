@@ -99,11 +99,12 @@
 	        	</progress-circle>
 	          
 	        </div>
-	        <div class="control">
+	        <div class="control" @click.stop="showPlaylist">
 	          <i class="icon-playlist"></i>
 	        </div>
 	     </div>
 	    </transition>  
+	    <playlist ref='playlist'></playlist>
 	    <audio ref='audio'
 	    	     :src="currentSong.url" 
 	    	     @canplay="ready" 
@@ -126,7 +127,7 @@ import {shuffle} from 'common/js/util'
 import Lyric from 'lyric-parser'     //歌词解析
 import Scroll from 'base/scroll/scroll'
 //import {playerMixin} from 'common/js/mixin'
-//import Playlist from 'components/playlist/playlist'
+import Playlist from 'components/playlist/playlist'
 
 const transform = prefixStyle('transform')
 const transitionDuration = prefixStyle('transitionDuration')
@@ -331,6 +332,9 @@ const transitionDuration = prefixStyle('transitionDuration')
       		
       		this.playingLyric = txt   //当前播放的歌词映射到 单条歌词显示的div中
       	},
+      	showPlaylist(){             //点击播放列表显示
+      		 this.$refs.playlist.show()    //调用playlist组件的show()方法
+      	},
       	middleTouchStart(e){  //手指刚刚触摸到屏幕时     
       		this.touch.initiated = true           //表示已经初始化 (初始化标志位)
       		const touch = e.touches[0]          //记录第一个手指
@@ -486,7 +490,9 @@ const transitionDuration = prefixStyle('transitionDuration')
     watch:{      //观察Vue实例上的数据变动     
     	
     	currentSong(newSong , oldSong){      //两个参数：第一个新的数据，第二个老的数据
- 
+        if(!newSong.id){    //如果没有了歌曲
+        	 return       //返回，不执行下面函数
+        }
     		if(newSong.id === oldSong.id){     //如果歌曲列表变化了，阻止当前歌曲的变化
     			return
     		}
@@ -517,7 +523,8 @@ const transitionDuration = prefixStyle('transitionDuration')
     components:{
     	ProgressBar,
     	ProgressCircle,
-    	Scroll
+    	Scroll,
+    	Playlist
     }
   }
 </script>
