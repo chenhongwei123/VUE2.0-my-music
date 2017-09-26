@@ -12,7 +12,7 @@ export const mode = state => state.mode
 
 export const currentIndex = state => state.currentIndex
 
-export const currentSong = (state) => {      //通过索引找到列表里的歌曲     
+export const currentSong = (state) => {      //通过索引找到列表里当前歌曲     
   return state.playlist[state.currentIndex] || {}
 }
 
@@ -21,3 +21,5 @@ export const disc = state => state.disc
 export const topList = state => state.topList
 
 export const searchHistory = state => state.searchHistory
+
+export const playHistory = state => state.playHistory

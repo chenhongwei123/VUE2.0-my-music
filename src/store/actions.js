@@ -1,7 +1,7 @@
 import * as types from './mutation-types'
 import {playMode} from 'common/js/config' 
 import {shuffle} from 'common/js/util'
-import {saveSearch, deleteSearch, clearSearch} from 'common/js/cache'
+import {saveSearch, deleteSearch, clearSearch,savePlay} from 'common/js/cache'
 
 function findIndex(list, song){          //返回歌曲在新列表里的索引
 	return list.findIndex((item) =>{
@@ -63,7 +63,6 @@ export const insetSong = function ({commit,state}, song){    //点击搜索的�
       playlist.splice(fpIndex + 1, 1)                  // 删除列表中的序号歌曲（索引加一）
      }
    }
-   
    
    // --------------在顺序列表中插入该首歌-------------
    
@@ -128,7 +127,18 @@ export const deleteSong = function({commit, state}, song){        //删除一首
 	if(!playlist.length){     //如果说把整个播放列表删除完了
 		commit(types.SET_PLAYING_STATE, false)       //设置播放状态为停止播放 
 	}else{
-		commit(types.SET_PLAYING_STATE, true)       //设置播放状态为停止播放 
+		commit(types.SET_PLAYING_STATE, true)       //设置播放状态为开始播放 
 	}
 	
+}
+
+export const deleteSongsList = function({commit}){    //清空播放列表
+	commit(types.SET_PLAYLIST, [])                    //播放列表 
+    commit(types.SET_SEQUENCE_LIST, [])               //顺序播放列表设为空数组
+    commit(types.SET_CURRENT_INDEX, -1)               //播放索引 设为-1
+    commit(types.SET_PLAYING_STATE, false)            //设置播放状态为停止播放 
+}
+
+export const savePlayHistory = function({commit}, song){
+	commit(types.SET_PLAY_HISTORY,savePlay(song))
 }

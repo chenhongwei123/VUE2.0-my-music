@@ -4,14 +4,14 @@
       <div class="list-wrapper" @click.stop>
         <div class="list-header">
           <h1 class="title">
-            <i class="icon" ></i>
-            <span class="text"></span>
-            <span class="clear"><i class="icon-clear"></i></span>
+            <i class="icon" :class="iconMode"  @click="changerMode"></i>
+            <span class="text">{{modeText}}</span>
+            <span class="clear" @click="showConfirm"><i class="icon-clear"></i></span>
           </h1>
         </div>
-        <scroll ref="listContent" class="list-content" :data='sequenceList'>
-          <ul ref="list" name="list" tag="ul">
-            <li ref='listItem' class="item" v-for="(item, index) in sequenceList" @click="selectItem(item, index)">
+        <scroll ref="listContent" :refreshDelay='refreshDelay' class="list-content" :data='sequenceList'>
+          <transition-group ref="list" name="list" tag="ul">
+            <li :key='item.id' ref='listItem' class="item" v-for="(item, index) in sequenceList" @click="selectItem(item, index)">
               <i class="current" :class="getCurrentIcon(item)"></i>
               <span class="text">{{item.name}}</span>
               <span  class="like">
@@ -22,47 +22,52 @@
                 <i class="icon-delete"></i>
               </span>
             </li>
-          </ul>
+          </transition-group >
         </scroll>
         <div class="list-operate">
           <div  class="add">
             <i class="icon-add"></i>
-            <span class="text">添加歌曲到队列</span>
+            <span class="text" @click="addSong">添加歌曲到队列</span>
           </div>
         </div>
         <div  class="list-close" @click='hide'>
           <span>关闭</span>
         </div>
       </div>
-      <!--<confirm ref="confirm" @confirm="confirmClear" text="是否清空播放列表" confirmBtnText="清空"></confirm>
-      <add-song ref="addSong"></add-song>-->
+      <confirm ref="confirm" @confirm="confirmClear" text="是否清空播放列表" confirmBtnText="清空"></confirm>
+      <add-song ref="addSong"></add-song>
     </div>
   </transition>
 </template>
 
 <script type="text/ecmascript-6">
 import {mapActions} from 'vuex'
-import {mapGetters} from 'vuex'
-import {mapMutations} from 'vuex'
+//import {mapGetters} from 'vuex'
+//import {mapMutations} from 'vuex'
 import {playMode} from 'common/js/config'
 import Scroll from 'base/scroll/scroll'
-//import Confirm from 'base/confirm/confirm'
-//import AddSong from 'components/add-song/add-song'
-//import {playerMixin} from 'common/js/mixin'
+import Confirm from 'base/confirm/confirm'
+import AddSong from 'components/add-song/add-song'
+import {playerMixin} from 'common/js/mixin'
 
   export default {
+  	mixins:[playerMixin],
     data(){
     	return {
-    		showFlag: false
+    		showFlag: false,
+    		refreshDelay:100
     	}
     },
     computed:{
-    	...mapGetters([       
-    		'sequenceList',      //拿到vuex里顺序列表数据
-    		'currentSong',       //播放索引
-    		'playlist'  ,         //播放列表
-    		'mode'               //播放模式
-    	])
+    	modeText(){
+    		return this.mode===playMode.sequence ? '顺序播放' : this.mode === playMode.random ? '随机播放' : '循环播放'
+    	}
+//  	...mapGetters([       
+//  		'sequenceList',      //拿到vuex里顺序列表数据
+//  		'currentSong',       //播放索引
+//  		'playlist'  ,         //播放列表
+//  		'mode'               //播放模式
+//  	])
     },
     methods:{
     	show(){             //显示
@@ -90,7 +95,7 @@ import Scroll from 'base/scroll/scroll'
     			})
     		}
     		this.setCurrentIndex(index)     //如果是顺序播放，或者循环，就是当前点击的index
-    		this.sePlayingState(true)
+    		this.setPlayingState(true)
     	},
     	scrollToCurrent(current){  //滚动列表到当前歌曲索引位置
     		const index = this.sequenceList.findIndex((song) =>{ 
@@ -104,12 +109,23 @@ import Scroll from 'base/scroll/scroll'
     	  	this.hide()
     	  }
       },
-    	...mapMutations({
-    		setCurrentIndex:'SET_CURRENT_INDEX',     //设置播放索引
-    		sePlayingState: 'SET_PLAYING_STATE'      //设置播放状态
-    	}),
+      showConfirm(){                    //点击显示弹出框
+      	this.$refs.confirm.show()
+      },
+      confirmClear(){                   //清空列表
+      	this.deleteSongsList()        
+      	this.hide()
+      },
+      addSong(){           //点击显示添加歌曲组件
+      	this.$refs.addSong.show()
+      },
+//  	...mapMutations({
+//  		setCurrentIndex:'SET_CURRENT_INDEX',     //设置播放索引
+//  		sePlayingState: 'SET_PLAYING_STATE'      //设置播放状态
+//  	}),
     	...mapActions([
-    		'deleteSong'         //映射删除歌曲 方法
+    		'deleteSong',         //映射删除歌曲 方法
+    		'deleteSongsList'    //映射清空歌曲列表 方法
     	])
     },
     watch:{
@@ -121,7 +137,9 @@ import Scroll from 'base/scroll/scroll'
     	}
     },
     components:{
-    	Scroll
+    	Scroll,
+    	Confirm,
+    	AddSong
     },
   }
 </script>

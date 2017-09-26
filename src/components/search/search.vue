@@ -6,7 +6,7 @@
   		<search-box ref='searchBox' @query='onQueryChanger'></search-box>
   	</div>
 	  <div ref='shortcutWrapper' class="shortcut-wrapper" v-show='!query'>
-	  	<scroll class="shortcut" ref='shortcut' :data='shortcut'>
+	  	<scroll :refreshDelay='refreshDelay' class="shortcut" ref='shortcut' :data='shortcut'>
 	  		<div>
 		  		<div class="hot-key">
 		  			<h1 class="title">热门搜索</h1>
@@ -58,16 +58,15 @@
  import SearchList from 'base/search-list/search-list'
  import Confirm from 'base/confirm/confirm'
  import Scroll from 'base/scroll/scroll'
- import {mapActions, mapGetters} from 'vuex'
- import {playlistMixin} from 'common/js/mixin'
+ import {mapActions} from 'vuex'
+ import {playlistMixin,searchMixin} from 'common/js/mixin'
 
  
  export default{
- 	mixins:[playlistMixin],
+ 	mixins:[playlistMixin,searchMixin],
  	data(){
  		return{
- 			hotkey:[],
- 			query:''
+ 			hotkey:[]
  		}
  	},
  	created(){
@@ -76,10 +75,10 @@
   computed:{
   	shortcut(){       //为了滚动，要把两个列表的数据连接在一起，才能滚动所有显示区域
   		return this.hotkey.concat(this.searchHistory)
-  	},
-	   ...mapGetters([
-	 	   'searchHistory'
-	  ])
+  	}
+//	   ...mapGetters([
+//	 	   'searchHistory'
+//	  ])
   },
  	methods:{ 
  		handlePlaylist(playlist){     //处理底部遮挡
@@ -89,13 +88,13 @@
       this.$refs.searchResult.style.bottom= bottom
       this.$refs.suggest.refresh() 
  		},
- 		addQuery(query){   //点击热门块
- 			//console.log(query)
- 			this.$refs.searchBox.setQuery(query)		//调用子组件的 setQuery()	方法
- 		},
- 		saveSearch(){                             //存储方法
- 			this.saveSearchHistory(this.query)     //通过vuex 存储搜索历史
- 		},
+// 		addQuery(query){   //点击热门块
+// 			//console.log(query)
+// 			this.$refs.searchBox.setQuery(query)		//调用子组件的 setQuery()	方法
+// 		},
+// 		saveSearch(){                             //存储方法
+// 			this.saveSearchHistory(this.query)     //通过vuex 存储搜索历史
+// 		},
  		showConfirm(){                      
  			this.$refs.confirm.show()      //调用confirm组件 的show() 的方法
  		},
@@ -113,15 +112,15 @@
  				}
  			})  
  		},
- 		onQueryChanger(query){   //获取子组件 （search-box） 传来的数据
- 			this.query = query
- 		},
- 		blurInput(){        //滑动搜索后的结果，让 search-box 组件里的input框失去焦点，手机上输入法框会消失
- 			this.$refs.searchBox.blur()    //调用 search-box 组件的blur()方法
- 		},
+// 		onQueryChanger(query){   //获取子组件 （search-box） 传来的数据
+// 			this.query = query
+// 		}
+// 		blurInput(){        //滑动搜索后的结果，让 search-box 组件里的input框失去焦点，手机上输入法框会消失
+// 			this.$refs.searchBox.blur()    //调用 search-box 组件的blur()方法
+// 		},
  		...mapActions([                 //映射vuex 的  Actions中的方法
- 			'saveSearchHistory',     //存储搜索数据
- 			'deleteSearchHistory' ,           //删除搜索数据
+// 			'saveSearchHistory',     //存储搜索数据
+// 			'deleteSearchHistory' ,           //删除搜索数据
  			'clearSearchHistory'           //清空
  		])
  	},

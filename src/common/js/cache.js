@@ -4,8 +4,8 @@ import storage from 'good-storage'          //缓存插件
 const SEARCH_KEY = '__search__'              //搜索历史数据的键值
 const SEARCH_MAX_LEN = 15                     //最大存15条数据
 
-const PLAY_KEY = '__play__'
-const PLAY_MAX_LEN = 200
+const PLAY_KEY = '__play__'                  //播放历史数据的键值
+const PLAY_MAX_LEN = 200                 
 
 const FAVORITE_KEY = '__favorite__'
 const FAVORITE_MAX_LEN = 200
@@ -60,8 +60,8 @@ export function loadSearch() {        //为了让vuex读取到 存储的值
   return storage.get(SEARCH_KEY, [])
 }
 
-export function savePlay(song) {
-  let songs = storage.get(PLAY_KEY, [])
+export function savePlay(song) {           //存储播放历史
+  let songs = storage.get(PLAY_KEY, [])      //当前列表
   insertArray(songs, song, (item) => {
     return song.id === item.id
   }, PLAY_MAX_LEN)
@@ -69,7 +69,7 @@ export function savePlay(song) {
   return songs
 }
 
-export function loadPlay() {
+export function loadPlay() {          //为了让vuex读取到 播放历史存储的值     
   return storage.get(PLAY_KEY, [])
 }
 

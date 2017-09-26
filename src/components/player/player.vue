@@ -111,28 +111,29 @@
 	    	     @error="error"
 	    	     @timeupdate="updateTime"
 	    	     @ended='end'
-	    > 
+	    >  
 	    </audio>
   </div>   
 </template>
 
 <script type="text/ecmascript-6">
-import {mapGetters,mapMutations} from 'vuex'
+import {mapGetters,mapMutations,mapActions} from 'vuex'
 import animations from 'create-keyframe-animation'
 import {prefixStyle} from 'common/js/dom'
 import ProgressBar from 'base/progress-bar/progress-bar'
 import ProgressCircle from 'base/progress-circle/progress-circle'
 import {playMode} from 'common/js/config'
-import {shuffle} from 'common/js/util'
+//import {shuffle} from 'common/js/util'
 import Lyric from 'lyric-parser'     //歌词解析
 import Scroll from 'base/scroll/scroll'
-//import {playerMixin} from 'common/js/mixin'
+import {playerMixin} from 'common/js/mixin'
 import Playlist from 'components/playlist/playlist'
 
 const transform = prefixStyle('transform')
 const transitionDuration = prefixStyle('transitionDuration')
   
   export default {
+      mixins: [playerMixin],
   	  data(){
   	  	return{
   	  		songReady:false,
@@ -160,18 +161,18 @@ const transitionDuration = prefixStyle('transitionDuration')
       	 percent(){        //进度条所占百分比 
       	   return this.currentTime / this.currentSong.duration
         },
-        iconMode(){    //判断当前播放模式，并添加相应样式
-    	  //console.log(this.mode)
-        	return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ?  'icon-loop' : 'icon-random'
-        },
+//      iconMode(){    //判断当前播放模式，并添加相应样式
+//  	  //console.log(this.mode)
+//      	return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ?  'icon-loop' : 'icon-random'
+//      },
       	...mapGetters([  //获取vuex里的数据
       		'fullScreen',
-      		'playlist',
-      		'currentSong',
+//    		'playlist',
+//    		'currentSong',
       		'playing',
       		'currentIndex',
-      		'mode',
-      		'sequenceList'
+//    		'mode',
+//    		'sequenceList'
       	])
       },
       methods:{
@@ -216,7 +217,6 @@ const transitionDuration = prefixStyle('transitionDuration')
       		  }
       		}
       		
-      		
       		this.songReady = false
       	},
       	prev(){     //上一首
@@ -240,6 +240,7 @@ const transitionDuration = prefixStyle('transitionDuration')
       	},
       	ready(){        //audio的ready属性（是否切换成功）
       		this.songReady=true
+      		this.savePlayHistory(this.currentSong)   
       	},
       	error(){       //audio的error属性    （是否切换错误）
       		this.songReady=true
@@ -269,41 +270,41 @@ const transitionDuration = prefixStyle('transitionDuration')
     			   this.currentLyric.seek(currentTime*1000)    //滑动滚动条，歌词也随之跳转至准确时间
     		  }
       	},
-      	changerMode(){   //切换播放模式 
-     		  const mode =(this.mode + 1) % 3 
-     		  //-------------取余-------------
-     		  //         ( 0 + 1 ) % 3 = ？
-     		  //          3 + 1 = 4
-     		  //          4 / 3 = 1 余 1
-     		  //          以此类推
-     		  
-      		this.setPlayMode(mode)
-      		 
-      		 let list = null
-      		if(mode === playMode.random){   //如果是随机播放
-      			
-      			  list = shuffle(this.sequenceList)    //洗牌，打乱列表顺序
-      			  console.log(list)
-      			  
-      		}else{                        //如果不是随机播放（顺序或循环）
-      			
-      			 list = this.sequenceList    
-      			  console.log(list)
-      		}
-      		this.resetCurrentIndex(list)
-      		this.setPlaylist(list)
-      	},
-      	resetCurrentIndex(list){       //播放模式改变时，把当前歌曲id保持不变
-      		
-      		 let index = list.findIndex((item) =>{  
-      		 	//findIndex() 方法返回传入一个测试条件（函数）符合条件的数组第一个元素位置。
-      		 	
-      		 	  return item.id === this.currentSong.id  //把原始列表中当前id赋值给新列表当前id
-      		 })
-      		 	console.log(index)
-      		 	
-      		 this.setCurrentIndex(index)      //设置歌曲index
-      	},
+//    	changerMode(){   //切换播放模式 
+//   		  const mode =(this.mode + 1) % 3 
+//   		  //-------------取余-------------
+//   		  //         ( 0 + 1 ) % 3 = ？
+//   		  //          3 + 1 = 4
+//   		  //          4 / 3 = 1 余 1
+//   		  //          以此类推
+//   		  
+//    		this.setPlayMode(mode)
+//    		 
+//    		 let list = null
+//    		if(mode === playMode.random){   //如果是随机播放
+//    			
+//    			  list = shuffle(this.sequenceList)    //洗牌，打乱列表顺序
+//    			  console.log(list)
+//    			  
+//    		}else{                        //如果不是随机播放（顺序或循环）
+//    			
+//    			 list = this.sequenceList    
+//    			  console.log(list)
+//    		}
+//    		this.resetCurrentIndex(list)
+//    		this.setPlaylist(list)
+//    	},
+//    	resetCurrentIndex(list){       //播放模式改变时，把当前歌曲id保持不变
+//    		
+//    		 let index = list.findIndex((item) =>{  
+//    		 	//findIndex() 方法返回传入一个测试条件（函数）符合条件的数组第一个元素位置。
+//    		 	
+//    		 	  return item.id === this.currentSong.id  //把原始列表中当前id赋值给新列表当前id
+//    		 })
+//    		 	console.log(index)
+//    		 	
+//    		 this.setCurrentIndex(index)      //设置歌曲index
+//    	},
       	getLyric(){        //歌词处理
       		this.currentSong.getLyric().then((lyric) =>{    //拿到 lyric 这个数据
       			this.currentLyric = new Lyric(lyric,this.handleLyric) //通过lyric-parser插件来歌词解析
@@ -321,11 +322,11 @@ const transitionDuration = prefixStyle('transitionDuration')
       	},
       	handleLyric({lineNum, txt}){  //歌词解的回调函数 （当歌曲的行发生改变时进行回调）
       		this.currentLineNum = lineNum     //当前行
-      		if(lineNum>5){            //如果歌词大于五行
+      		if(lineNum > 5){            //如果歌词大于五行
       			let lineEl= this.$refs.lyricLine[lineNum-5]     //当前行-5
 //    		  console.log(this.$refs.lyricLine[lineNum])
 //    		  console.log(lineEl)
-      			this.$refs.lyricList.scrollToElement(lineEl, 1000)    //
+      			this.$refs.lyricList.scrollToElement(lineEl, 1000)    //scroll组件自动滚动方法
       		}else{
       			this.$refs.lyricList.scrollTo(0, 0, 1000)
       		}
@@ -479,12 +480,15 @@ const transitionDuration = prefixStyle('transitionDuration')
       disableCls(){       //通过样式来处理歌曲是否切换成功
       	return this.songReady ? '' : 'disable'
       },
+      ...mapActions([
+      	'savePlayHistory'
+      ]),
   	  ...mapMutations({       //通过Mutations映射数据
   		  setFullScreen:'SET_FULL_SCREEN',
-  		  setPlayingState:'SET_PLAYING_STATE',
-  		  setCurrentIndex:'SET_CURRENT_INDEX',
-  		  setPlayMode:'SET_PLAY_MODE',
-  		  setPlaylist:'SET_PLAYLIST'
+//		  setPlayingState:'SET_PLAYING_STATE',
+//		  setCurrentIndex:'SET_CURRENT_INDEX',
+//		  setPlayMode:'SET_PLAY_MODE',
+//		  setPlaylist:'SET_PLAYLIST'
   	  })
     },
     watch:{      //观察Vue实例上的数据变动     

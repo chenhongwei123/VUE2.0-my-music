@@ -87,12 +87,13 @@ import Singer from 'common/js/singer'
       		})
       	},
       	selectItem(item){      //点击搜索内容跳转相应歌手或歌曲
+      		console.log(item)
       		if(item.type === TYPE_SINGER){
       			const singer = new Singer({    //通过数据创建一个Singer对象
       				 id: item.singermid,
                name: item.singername
       			})
-      			
+      		  // console.log(singer)	
       			this.$router.push({       // 二级路由跳转至 带有id
       		    	path:`/search/${singer.id}`
 	      		})

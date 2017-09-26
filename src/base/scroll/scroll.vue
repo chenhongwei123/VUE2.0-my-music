@@ -34,7 +34,7 @@
         type: Boolean,
         default: false
       },
-      refreshDelay: {
+      refreshDelay: {       //
         type: Number,
         default: 20
       }
