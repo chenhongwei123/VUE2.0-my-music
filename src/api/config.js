@@ -16,5 +16,11 @@ export const options1 = {
 	prefix: 'playlistinfoCallback'
 }
 
+export const options2 = {
+
+	param: 'jsonpCallback',
+	prefix: 'GetTagListCallback'
+}
+
 
 export const ERR_OK = 0

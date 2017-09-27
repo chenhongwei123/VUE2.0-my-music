@@ -30,16 +30,20 @@ import {createSong} from 'common/js/song'
     },
     created(){
     	this._getSongList()
+    	
     },
     methods:{
     	_getSongList(){
+    	//	console.log(this.disc.dissid)
     		if( !this.disc.dissid){
     			this.$router.push('/recommend')
     		}
     		getSongList(this.disc.dissid).then((res) =>{    //获取歌单数据
+    			//console.log(res.code)
     			if(res.code ===ERR_OK){
+    				console.log(res)
     				this.songs = this._normalizeSongs(res.cdlist[0].songlist)
-    				console.log(this.songs)
+    				//console.log(this.songs)
     			}
     		})
     	},

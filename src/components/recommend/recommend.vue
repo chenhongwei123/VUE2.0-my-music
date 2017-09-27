@@ -88,7 +88,7 @@
 			...mapMutations({ 
      	    		setDisc:"SET_DISC"      //vuex 一个映射方法
      	    	})
-			
+
 		},
 		components: {
 			Slider,

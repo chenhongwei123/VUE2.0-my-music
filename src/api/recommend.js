@@ -10,7 +10,7 @@ export function getRecommend() { //抓取轮播图数据
 	})
 	return jsonp(url, data, options)
 }
-export function getDiscList() { //抓取热门歌单推荐数据
+export function getDiscList() {           //抓取热门歌单推荐数据
 	const url = '/api/getDiscList'
 
 	const data = Object.assign({}, commonParams, {
@@ -46,4 +46,5 @@ export function getSongList(disstid) {
 		loginUin:0
 	})
 	return jsonp(url, data, options1)
+
 }

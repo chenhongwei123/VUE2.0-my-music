@@ -38,7 +38,8 @@ export const playerMixin = {
 			'sequenceList', //拿到vuex里顺序列表数据
 			'currentSong', //播放索引
 			'playlist', //播放列表
-			'mode' //播放模式
+			'mode', //播放模式
+			'favoriteList'  //收藏列表
 		])
 	},
 	methods: {
@@ -76,12 +77,35 @@ export const playerMixin = {
 
 			this.setCurrentIndex(index) //设置歌曲index
 		},
+		getFavoriteIcon(song){         //收藏样式添加
+			if(this.isFavorite(song)){
+				return 'icon-favorite'
+			}
+			return 'icon-not-favorite'
+		},
+		toggleFavorite(song){        //点击爱心图标，进行收藏与取消
+			if(this.isFavorite(song)){  //如果列表中有
+				this.deleteFavoriteList(song)  //操作取消收藏
+			}else{
+				this.saveFavoriteList(song)  //否则就收藏
+			}
+		},
+		isFavorite(song){           //判断这首歌是否在收藏列表里
+			const index =this.favoriteList.findIndex((item) =>{
+				return item.id === song.id
+			})
+			return index > -1          //大与-1 表示已存在
+		},
 		...mapMutations({ //通过Mutations映射数据
 			setPlayingState: 'SET_PLAYING_STATE',
 			setCurrentIndex: 'SET_CURRENT_INDEX',
 			setPlayMode: 'SET_PLAY_MODE',
-			setPlaylist: 'SET_PLAYLIST'
-		})
+			setPlaylist: 'SET_PLAYLIST',
+		}),
+		...mapActions([
+			'saveFavoriteList',
+			'deleteFavoriteList'
+		])
 	}
 
 }
@@ -118,3 +142,4 @@ export const searchMixin = {
 		])
 	}
 }
+

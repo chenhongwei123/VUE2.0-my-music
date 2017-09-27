@@ -74,7 +74,7 @@
               <i @click="next"  class="icon-next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+              <i class="icon" @click='toggleFavorite(currentSong)' :class="getFavoriteIcon(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -107,7 +107,7 @@
 	    <playlist ref='playlist'></playlist>
 	    <audio ref='audio'
 	    	     :src="currentSong.url" 
-	    	     @canplay="ready" 
+	    	     @play="ready" 
 	    	     @error="error"
 	    	     @timeupdate="updateTime"
 	    	     @ended='end'
@@ -203,6 +203,7 @@ const transitionDuration = prefixStyle('transitionDuration')
       		
       		if(this.playlist.length === 1){    //如果播放列表只有一首歌
       			this.loop()                      //则进行循环播放
+      			return
       		}else{
       			let index = this.currentIndex + 1 //下一首歌的索引
       		  console.log(this.playlist.length)
@@ -307,6 +308,9 @@ const transitionDuration = prefixStyle('transitionDuration')
 //    	},
       	getLyric(){        //歌词处理
       		this.currentSong.getLyric().then((lyric) =>{    //拿到 lyric 这个数据
+      			if(this.currentSong.lyric !==lyric){
+      				return
+      			}
       			this.currentLyric = new Lyric(lyric,this.handleLyric) //通过lyric-parser插件来歌词解析
       			                                                      // this.handleLyric 是回调函数
       			if( this.playing ){                //如果歌曲在播放
@@ -504,8 +508,8 @@ const transitionDuration = prefixStyle('transitionDuration')
     		if(this.currentLyric){
     			this.currentLyric.stop()    //切换歌曲之前停止当前歌词播放
     		}
-    		
-    		setTimeout(() =>{    
+    		clearTimeout(this.timer)
+    		this.timer=setTimeout(() =>{    
     			this.$refs.audio.play()
     			this.getLyric()    //获取歌词
     		},1000) 

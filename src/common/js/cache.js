@@ -7,7 +7,7 @@ const SEARCH_MAX_LEN = 15                     //最大存15条数据
 const PLAY_KEY = '__play__'                  //播放历史数据的键值
 const PLAY_MAX_LEN = 200                 
 
-const FAVORITE_KEY = '__favorite__'
+const FAVORITE_KEY = '__favorite__'           //收藏列表数据的键值
 const FAVORITE_MAX_LEN = 200
 
 function insertArray(arr, val, compare, maxLen) {   //最新存储的数据放在第一位，并且删除相同的数据
@@ -73,17 +73,17 @@ export function loadPlay() {          //为了让vuex读取到 播放历史存�
   return storage.get(PLAY_KEY, [])
 }
 
-export function saveFavorite(song) {
-  let songs = storage.get(FAVORITE_KEY, [])
-  insertArray(songs, song, (item) => {
+export function saveFavorite(song) {    //存储一首歌到收藏列表
+  let songs = storage.get(FAVORITE_KEY, []) //先拿到收藏列表数据，没有的话就是空数组
+  insertArray(songs, song, (item) => {   //把歌曲插入到收藏列表中
     return song.id === item.id
   }, FAVORITE_MAX_LEN)
-  storage.set(FAVORITE_KEY, songs)
-  return songs
+  storage.set(FAVORITE_KEY, songs)       //插入完就存储到FAVORITE_KEY中
+  return songs                          //并把新数据返回出去
 }
 
-export function deleteFavorite(song) {
-  let songs = storage.get(FAVORITE_KEY, [])
+export function deleteFavorite(song) {      //删除收藏列表里的这首歌
+  let songs = storage.get(FAVORITE_KEY, []) 
   deleteFromArray(songs, (item) => {
     return item.id === song.id
   })
@@ -91,7 +91,7 @@ export function deleteFavorite(song) {
   return songs
 }
 
-export function loadFavorite() {
+export function loadFavorite() {         //为了让vuex读取到 收藏列表存储的值    （初始状态） 
   return storage.get(FAVORITE_KEY, [])
 }
 
