@@ -45,7 +45,7 @@
      	    			if(res.code==ERR_OK){
      	    				 console.log(this._normalizeSinger(res.data.list))
      	    				 this.singers =this._normalizeSinger(res.data.list)
-//   	    				 console.log(this.singers)
+   	    				   console.log(res.data.list)
      	    			}
      	    		})
      	    	},
@@ -59,6 +59,7 @@
      	    		}
      	    		
      	    		list.forEach((item, index) => {
+     	    			//console.log(index)
 			          if (index < HOT_SINGER_LEN) {  //如果indx<10
 			            map.hot.items.push(new Singer({    //将数据push到map对象的hot里面
 			              name: item.Fsinger_name,

@@ -4,7 +4,7 @@
     <ul>
     	
     	<li @click="selectItem(song ,index)" v-for='(song,index) in songs' class="item">
-    		<div class="rank" v-show="rank">
+    		 <div class="rank" v-show="rank">
     		 	  <span :class="getRankCls(index)" v-text="getRankText(index)"> </span>
     		 </div>
     		 <div class="content">

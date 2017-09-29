@@ -52,18 +52,18 @@
 			}
 		},
 		computed:{
-			shortcutList(){
+			shortcutList(){    // 歌手字母列表  【A,B,C,D,...】
 				return this.data.map(function(group){
 					//console.log(data.title.substr(0,1))
 					//return data.title.substr(0,1)
 					return group.title.substr(0,1)
 				})
 			},
-			fixedTitle(){
+			fixedTitle(){               //顶部目录
 				if (this.scrollY > 0) {
 		          return ''
 		        }
-				return this.data[this.currentIndex]?this.data[this.currentIndex].title:''
+				return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
 			}
 		},
 		data(){
@@ -86,14 +86,15 @@
 				this.$emit("select",item)      //把数据传出去 （其它组件通过@select='' 获取）
 			},
 			onSgorcutTouchStart(e){         //点击跳转
-				let anchorIndex=getData(e.target,'index')
-				console.log(anchorIndex)
+				let anchorIndex=getData(e.target,'index')     //返回 :data-index 的属性值。(索引)
+//				console.log(e.target)
+//				console.log(anchorIndex)
 				
-				let firstTouch=e.touches[0]
+				let firstTouch=e.touches[0]     //第一次触摸点
 				
 				this.touch.y1=firstTouch.pageY  //第一次触摸屏幕的y轴位置
 				
-				this.touch.anchorIndex =anchorIndex
+				this.touch.anchorIndex =anchorIndex   //记录当前索引
 				
 				this._scrollTo(anchorIndex)
 			},

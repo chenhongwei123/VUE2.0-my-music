@@ -21,7 +21,7 @@ export function getData(el, name, val) {
   if (val) {
     return el.setAttribute(prefix + name, val)
   }
-  return el.getAttribute(prefix + name)
+  return el.getAttribute(prefix + name)       //getAttribute() 方法返回指定属性名的属性值。
 }
 
 let elementStyle = document.createElement('div').style
