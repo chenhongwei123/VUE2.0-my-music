@@ -52,6 +52,6 @@ export function prefixStyle(style) {
   if (vendor === 'standard') {
     return style
   }
-
+ // console.log(vendor + style.charAt(0).toUpperCase() + style.substr(1))
   return vendor + style.charAt(0).toUpperCase() + style.substr(1)
 }

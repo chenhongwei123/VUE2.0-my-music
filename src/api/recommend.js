@@ -10,7 +10,7 @@ export function getRecommend() { //抓取轮播图数据
 	})
 	return jsonp(url, data, options)
 }
-export function getDiscList() {           //抓取热门歌单推荐数据
+export function getDiscList() { //抓取热门歌单推荐数据
 	const url = '/api/getDiscList'
 
 	const data = Object.assign({}, commonParams, {
@@ -32,8 +32,10 @@ export function getDiscList() {           //抓取热门歌单推荐数据
 	})
 }
 
+const debug = process.env.NODE_ENV !== 'production'
 export function getSongList(disstid) {
-	const url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg'
+	//	const url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg'
+	const url = debug ? '/api/getCdInfo' : 'http://ustbhuangyi.com/music/api/getCdInfo'
 	const data = Object.assign({}, commonParams, {
 		disstid,
 		type: 1,
@@ -43,8 +45,12 @@ export function getSongList(disstid) {
 		platform: 'yqq',
 		hostUin: 0,
 		needNewCode: 0,
-		loginUin:0
+		loginUin: 0
 	})
-	return jsonp(url, data, options1)
+	return axios.get(url, {
+		params: data
+	}).then((res) => {
+		return Promise.resolve(res.data)
+	})
 
 }

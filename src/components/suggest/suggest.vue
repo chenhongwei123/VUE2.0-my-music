@@ -57,7 +57,6 @@ import Singer from 'common/js/singer'
       		pullup: true,
       		beforeScroll:true,
       		hasMore:true    //标志符
-      		
       	}
       },
       methods:{
@@ -163,7 +162,7 @@ import Singer from 'common/js/singer'
       },
       watch:{    
       	query(){           //实时观测搜索词的变化
-      		this.search()   //通过 search() 方法
+      		this.search()    //通过 search() 方法
       	}
       },
       components:{

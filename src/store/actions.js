@@ -8,6 +8,7 @@ function findIndex(list, song){          //返回歌曲在新列表里的索引
 	  return	item.id === song.id            
 	})
 }
+
 export const selectPlay=function({commit, state}, {list, index}){  //点击歌曲播放的数据设置
 	
 	commit(types.SET_SEQUENCE_LIST, list)  //顺序播放列表
@@ -103,9 +104,9 @@ export const clearSearchHistory = function({commit}){        //清空搜索历�
 
 export const deleteSong = function({commit, state}, song){        //删除一首歌
 		// 因为Songer实例拿不到 playlist，sequenceList，currentIndex，所以要用state来获取
-	let playlist=state.playlist.slice()          //用slice() 方法来获取副本修改，才不会报错
-	let sequenceList= state.sequenceList.slice()
-	let currentIndex= state.currentIndex  
+	let playlist = state.playlist.slice()          //用slice() 方法来获取副本修改，才不会报错
+	let sequenceList = state.sequenceList.slice()
+	let currentIndex = state.currentIndex  
 	
 	let pIndex= findIndex(playlist, song)   //找到这首歌在playlist（播放列表）下的索引
 	playlist.splice(pIndex,1)                //并在playlist中删除
@@ -122,7 +123,6 @@ export const deleteSong = function({commit, state}, song){        //删除一首
     commit(types.SET_SEQUENCE_LIST, sequenceList)     //提交最新的顺序播放列表
     commit(types.SET_CURRENT_INDEX, currentIndex)    //提交最新的播放索引
 
-	
 	
 	if(!playlist.length){     //如果说把整个播放列表删除完了
 		commit(types.SET_PLAYING_STATE, false)       //设置播放状态为停止播放 
@@ -150,4 +150,3 @@ export const saveFavoriteList = function({commit}, song){    //添加存储播�
 export const deleteFavoriteList = function({commit}, song){    //删除收藏列表里数据
 	commit(types.SET_FAVORITE_LIST, deleteFavorite(song))
 }
-

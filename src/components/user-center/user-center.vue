@@ -135,7 +135,7 @@ import {playlistMixin} from 'common/js/mixin'
     &.slide-enter, &.slide-leave-to
       transform: translate3d(100%, 0, 0)
     .back
-      position absolute
+      position: absolute
       top: 0
       left: 6px
       z-index: 50

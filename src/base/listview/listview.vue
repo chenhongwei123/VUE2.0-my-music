@@ -82,7 +82,7 @@
 		
 		methods:{
 			selectItem(item){     
-				//console.log(item)
+				console.log(item)
 				this.$emit("select",item)      //把数据传出去 （其它组件通过@select='' 获取）
 			},
 			onSgorcutTouchStart(e){         //点击跳转

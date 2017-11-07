@@ -9,6 +9,8 @@ import VueLazyload from 'vue-lazyload'
 import store from './store'
 import 'common/stylus/index.styl'
 
+//import vConsole from 'vconsole'       //手机端调试输出 console
+
 Vue.config.productionTip = false
 
 fastclick.attach(document.body)

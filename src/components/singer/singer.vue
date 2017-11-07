@@ -40,7 +40,7 @@
      	    		})
      	    		this.setSinger(singer)
      	    	},
-     	    	_getSingerList(){  
+     	    	_getSingerList(){  //获取歌手列表数据
      	    		getSingerList().then((res) =>{
      	    			if(res.code==ERR_OK){
      	    				 console.log(this._normalizeSinger(res.data.list))
@@ -107,9 +107,6 @@
         	ListView
         }
      }
-     
-     
-     
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">

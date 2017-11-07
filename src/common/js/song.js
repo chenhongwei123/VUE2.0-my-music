@@ -57,4 +57,3 @@ export function filterSinger(singer) {
  // console.log(ret)
   return ret.join('/')
 }
-

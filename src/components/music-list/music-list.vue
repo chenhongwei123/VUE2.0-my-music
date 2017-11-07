@@ -56,21 +56,25 @@ const backdrop = prefixStyle('backdrop-filter')
         type: String,
         default: ''
       },
+      
       rank: {
         type: Boolean,
         default: false
       }
     },
+    
     data(){
     	return{
     		scrollY:0
     	}
     },
+    
     computed:{
     	bgStyle(){
     		return `background-image:url(${this.bgImage})`
     	}
     },
+    
     created(){
     	this.probeType = 3
     	this.listenScroll = true

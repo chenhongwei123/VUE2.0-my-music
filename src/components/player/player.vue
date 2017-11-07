@@ -49,8 +49,8 @@
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
-            <span class="dot" :class="{'active':currentShow==='cd'}"></span>
-            <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
+            <span class="dot" :class="{'active':currentShow === 'cd'}"></span>
+            <span class="dot" :class="{'active':currentShow === 'lyric'}"></span>
           </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
@@ -373,7 +373,7 @@ const transitionDuration = prefixStyle('transitionDuration')
       		//  lyricList 是个组件 ，无法在当前操作此组件的DOM， 只有加上 $el(elenemt)来访问它的DOM
       		
       		this.$refs.lyricList.$el.style[transitionDuration] =0   //移动过渡效果初始化为0
-      		
+      		console.log(transitionDuration)
       		this.$refs.middleL.style.opacity = 1 - this.touch.percent
       		//设置 唱片图片的透明度，如滑动百分比越大，透明度就越小，反之亦然
       		this.$refs.middleL.style[transitionDuration] =0   //透明度过渡效果初始化为0
